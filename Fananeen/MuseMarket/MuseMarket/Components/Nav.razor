@@ -1,0 +1,83 @@
+﻿@inject NavigationManager NavigationManager
+@inject ClientService ClientService
+@inject ArtistService ArtistService
+<style>
+
+
+</style>
+<div class="NV">
+    <button class="NavBtn" @onclick="navigatetoHome">MuseMarket</button>
+    <div class="btnsss">
+        <button class="NavBtn1" @onclick="NavigateCommision">Commisions</button>
+        <button class="NavBtn1" @onclick="NavigateOeuvres">Art Pieces</button>
+        <button class="NavBtn1" @onclick="NavigateArtists">Artists</button>
+        @if ( client is not null)
+        {
+            <button class="NavBtn1" @onclick="NavigateProfileClient">Profile Client</button>
+        }
+        else if (artist is not null)
+        {
+            <button class="NavBtn1" @onclick="NavigateProfileArt">Profile Artist</button>
+        }
+        else
+        {
+            <button class="NavBtn1" @onclick="NavigateSignUp">Sign in</button>
+        }
+
+        
+    </div>
+</div>
+
+@code{
+
+    Artist? artist;
+    Client? client;
+
+    public async Task navigatetoHome()
+    {
+        NavigationManager.NavigateTo("/");
+        await fetch();
+    }
+    public async Task NavigateCommision()
+    {
+        NavigationManager.NavigateTo("/Commisions");
+        await fetch();
+    }
+    public async Task NavigateOeuvres()
+    {
+        NavigationManager.NavigateTo("/Oeuvres");
+        await fetch();
+    }
+    public async Task NavigateArtists()
+    {
+        NavigationManager.NavigateTo("/Artists");
+        await fetch();
+    }
+    public async Task NavigateProfileArt()
+    {
+        NavigationManager.NavigateTo("/ArtistPanel");
+        await fetch();
+    }
+    public async Task NavigateProfileClient()
+    {
+        NavigationManager.NavigateTo("/ClientPanel");
+        await fetch();
+    }
+    public async Task NavigateSignUp()
+    {
+        NavigationManager.NavigateTo("/SignUp");
+        await fetch();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await fetch();
+    }
+    public async Task fetch()
+    {
+
+        artist = await ArtistService.GetCurrentArtist();
+        client = await ClientService.GetCurrentClient();
+        StateHasChanged(); // Force UI refresh
+    }
+}

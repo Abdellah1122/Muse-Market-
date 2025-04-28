@@ -1,0 +1,783 @@
+﻿@page "/ArtistPanel"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Text.Json
+@inject OeuvreService OeuvreService
+@inject ArtistService ArtistService
+@inject ArtFormService ArtFormService
+@inject CategorieOeuvreService CategorieOeuvreService
+@inject SousCategorieOeuvreService SousCategorieOeuvreService
+@inject VilleService VilleService
+@inject ISnackbar Snackbar
+@inject HttpClient Http
+@inject ClientService ClientService
+@inject NavigationManager NavigationManager
+
+<style>
+    :root {
+        --primary-color: #254268;
+        --primary-dark: #1d3553;
+        --secondary-color: #5b8a78;
+        --secondary-light: #6c9a88;
+        --accent-color: #e8f0ed;
+        --danger-color: #d84040;
+        --danger-dark: #c53030;
+        --gold-accent: #d4c197;
+        --light-bg: #f7f7f7;
+        --card-bg: #ffffff;
+        --text-dark: #2c3e50;
+        --text-medium: #546e7a;
+        --text-light: #78909c;
+        --border-radius: 6px;
+        --box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
+        
+         
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Cormorant", serif;
+        transition: var(--transition);
+    }
+
+    body {
+        background-color: var(--light-bg);
+        min-height: 100vh;
+        overflow-x: hidden;
+        color: var(--text-dark);
+        line-height: 1.6;
+        background-image: linear-gradient(to right, rgba(91, 138, 120, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(91, 138, 120, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+    .Villess button{
+        background-color: var(--accent-color);
+        padding:0.5em 2em;
+    }
+
+    .BtnD {
+        background-color: var(--danger-color) !important;
+        color: white !important;
+        border: 1px solid var(--danger-color) !important;
+    }
+
+        .BtnD:hover {
+            background-color: var(--danger-dark) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
+        }
+</style>
+<Nav/>
+@if (artists != null)
+{
+<div class="m">
+    <div class="Left">
+        <div class="img-container">
+                <img src="https://localhost:7148/ImagesArtists/@(artist.ImageArtist)" />
+        </div>
+        <div class="Infos">
+                @if (IsPrenomClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewPrenom" placeholder="Enter Your New First Name"/>
+                        <button class="BtnSuc" @onclick="ChangePrenom">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>First Name : </b> @artist.Prenom</p>
+                        <button @onclick="showprenom"> <i class="bi bi-vector-pen"></i></button>
+                    </div>
+                }
+                
+                @if (IsnomClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewNom" placeholder="Enter Your New Last Name" />
+                        <button class="BtnSuc" @onclick="ChnageNom">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>Last Name : </b>  @artist.Nom</p>
+                        <button @onclick="ShowNom"> <i class="bi bi-vector-pen"></i></button>
+                    </div>
+                }
+                @if (IsPhoneClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewPhone" placeholder="Enter Your New Phone Number" />
+                        <button class="BtnSuc" @onclick="ChnagePhoneNumber">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>Phone Number : </b> @artist.Telephone</p>
+                        <button @onclick="ShowNumber"> <i class="bi bi-vector-pen"></i> </button>
+                    </div>
+                }
+                @if (IsEmailClicked)
+                {
+                    <div class="Info">
+                        <input @bind ="NewEmail" placeholder="Enter Your New Email" />
+                        <button class="BtnSuc" @onclick="ChangeEmail">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>Email : </b> @artist.Email</p>
+                        <button @onclick="ShowEmail"> <i class="bi bi-vector-pen"></i> </button>
+                    </div>
+                }
+                @if (IsCityClicked)
+                {
+                    <div class="Info">
+                        <div class="Villess">
+                            <MudMenu Label="Chose Your New City" MaxHeight="450" FullWidth="true">
+                                @if (villes != null && villes.Any())
+                                {
+                                    @foreach (var v in villes)
+                                    {
+                                        <MudMenuItem OnClick="()=>ChoseVille(v)">@v.Nom</MudMenuItem>
+                                    }
+                                }
+
+                            </MudMenu>
+                        </div>
+                        <button class="BtnSuc" @onclick="ChangeVille">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>City : </b> @artist.ville.Nom</p>
+                        <button @onclick="ShowCity"> <i class="bi bi-vector-pen"></i> </button>
+                    </div>
+                }
+                @if (IsArtFormClicked)
+                {
+                    <div class="Info">
+                        <div class="Villess">
+                            <MudMenu Label="Chose Your New ArtForm" MaxHeight="450" FullWidth="true">
+                                @if (artforms != null && artforms.Any())
+                                {
+                                    @foreach (var v in artforms)
+                                    {
+                                        <MudMenuItem OnClick="()=>ChoseArtForm(v)">@v.Nom</MudMenuItem>
+                                    }
+                                }
+
+                            </MudMenu>
+                        </div>
+                        <button class="BtnSuc" @onclick="ChangeArtForm">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>Art Form : </b> @artist.artForm.Nom</p>
+                        <button @onclick="ShowArtForm"> <i class="bi bi-vector-pen"></i> </button>
+                    </div>
+                }
+                @if (IsUserNameClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewUsename" placeholder="Enter Your New Username" />
+                        <button class="BtnSuc" @onclick="ChnageUsername">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>User Name : </b> @artist.UserName</p>
+                        <button @onclick="ShowUsername"> <i class="bi bi-vector-pen"></i></button>
+                    </div>
+                }
+                @if (IsPassWordClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewPassword" type="password" placeholder="Enter Your New Password" />
+                        <button class="BtnSuc" @onclick="showprenom">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>PassWord : </b> *********</p>
+                        <button @onclick="ShowPassWord"> <i class="bi bi-vector-pen"></i></button>
+                    </div>
+                }
+                <div class="Info" style="padding:0em 4em;margin-top:2em;">
+                    <button @onclick="DeleteAccount" class="BtnD">Delete Account</button>
+                    <button @onclick="Logout" class="BtnD"> Log Out</button>
+                </div>
+        </div>
+    </div>
+    <div class="Right">
+        <div class="headerrr">
+                <h1>Welcome: Mr/Ms @artist.Nom @artist.Prenom</h1>
+                <button class="BtnSuc" @onclick="OpenAddModal">Add an Art Piece</button>
+        </div>
+        
+        <div class="Stats">
+            <h2>Statistics</h2>
+            <div class="Statss">
+                <p>Rating : <b>@artist.Rating</b></p>
+                <p>Art Works Sold : <b>@artist.NbrOeuvreVendu</b></p>
+                <p>Times Profile Visited : <b>@artist.NbrFoisVisite</b></p>
+            </div>
+        </div>
+        <h2>Listed Art Pieces</h2>
+        <div class="Cardss">
+                @if (filteredoeuvres != null && filteredoeuvres.Where(c => c.Artist.Id == artist.Id && c.Statut == StatutOeuvre.ForSale).ToList().Any())
+            {
+                @foreach (var o in filteredoeuvres.Where(c=>c.Artist.Id==artist.Id && c.Statut==StatutOeuvre.ForSale).ToList())
+                {
+                    <div class="card">
+                        <div class="img-container">
+                                <img src="https://localhost:7148/ImagesOeuvre/@o.ImageOeuvre2" />
+                        </div>
+                        <div class="content">
+                            <div class="tags">
+                                <span class="tag">Title : @o.Titre</span>
+                                <span class="tag">Made By : Mr/Mrs  <u>@o.Artist.Nom @o.Artist.Prenom</u></span>
+                                <span class="tag">Price : <u>@o.Prix</u> Dh</span>
+                                @if (o.IsLicensed)
+                                {
+                                    <span class="tag">Is The Art Piece licensed : YES</span>
+                                }
+                                else
+                                {
+                                    <span class="tag">Is The Art Piece licensed : NO</span>
+
+                                }
+
+                            </div>
+                            <p>@o.Description</p>
+                            <div class="btns">
+                                    <button class="BtnDanger" @onclick="()=>DeleteOeuvre(o)">Delete</button>
+                                <button class="BtnSuc" @onclick="()=>ArchiveOeuvre(o)">Archive</button>
+                            </div>
+
+                        </div>
+                    </div>
+                }
+
+            }
+            else
+            {
+                <h3>You have no Listed Items At the moment</h3>
+            }
+
+        </div>
+        <h2>Sold Art Pieces</h2>
+        <div class="Cardss">
+                @if (filteredoeuvres != null && filteredoeuvres.Where(c => c.Artist.Id == artist.Id && c.Statut == StatutOeuvre.Sold).ToList().Any())
+                {
+                @foreach (var o in filteredoeuvres.Where(c => c.Artist.Id == artist.Id && c.Statut==StatutOeuvre.Sold).ToList())
+                {
+                    <div class="card">
+                        <div class="img-container">
+                                <img src="https://localhost:7148/ImagesOeuvre/@o.ImageOeuvre2" />
+                        </div>
+                        <div class="content">
+                            <div class="tags">
+                                <span class="tag">Title : @o.Titre</span>
+                                <span class="tag">Price : @o.Prix DH</span>
+                            </div>
+                            <p>@o.Description</p>
+                        </div>
+                    </div>
+                }
+
+            }
+            else
+            {
+                <h3>You still haven't made no sales</h3>
+            }
+        </div>
+            <h2>Archived Art Pieces</h2>
+            <div class="Cardss">
+                @if (filteredoeuvres != null && filteredoeuvres.Where(c => c.Artist.Id == artist.Id && c.Statut == StatutOeuvre.NotForSale).ToList().Any())
+                {
+                    @foreach (var o in filteredoeuvres.Where(c => c.Artist.Id == artist.Id && c.Statut == StatutOeuvre.NotForSale).ToList())
+                    {
+                        <div class="card">
+                            <div class="img-container">
+                                <img src="https://localhost:7148/ImagesOeuvre/@o.ImageOeuvre2" />
+                            </div>
+                            <div class="content">
+                                <div class="tags">
+                                    <span class="tag">Title : @o.Titre</span>
+                                    <span class="tag">Made By : Mr/Mrs  <u>@o.Artist.Nom @o.Artist.Prenom</u></span>
+                                    <span class="tag">Price : <u>@o.Prix</u> Dh</span>
+                                    @if (o.IsLicensed)
+                                    {
+                                        <span class="tag">Is The Art Piece licensed : YES</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="tag">Is The Art Piece licensed : NO</span>
+
+                                    }
+
+                                </div>
+                                <p>@o.Description</p>
+                                <div class="btns">
+                                    <button class="BtnDanger" @onclick="()=>DeleteOeuvre(o)">Delete</button>
+                                    <button class="BtnSuc" @onclick="()=>UNArchiveOeuvre(o)">UnArchive</button>
+                                </div>
+
+                            </div>
+                        </div>
+                    }
+
+                }
+                else
+                {
+                    <h3>No Art Pieces Archived</h3>
+                }
+            </div>
+    </div>
+    </div>
+}
+else
+{
+   <h1>Loading ... </h1>
+}
+<Footer/>
+@if (AddAnOeuvreModal)
+{
+    <div class="backdrop"></div>
+    <div class="M2">
+        <div class="c1">
+            <h1>Add A new Art Piece:</h1>
+            <button class="BtnDanger" @onclick="CloseAddModal">Close</button>
+        </div>
+        <div class="AddOeuvreForm">
+            <div class="Left">
+                <div class="input-group">
+                    <input type="text" @bind="Title" placeholder="Title" />
+                </div>
+                <div class="input-group">
+                    <input type="text" @bind="Description" placeholder="Description" />
+                </div>
+                <div class="input-group">
+                    <input type="text" @bind="Price" placeholder="Price" />
+                </div>
+                <div class="input-group">
+                    <MudDatePicker Required Style="--mud-palette-primary:var(--primary-color);" Label="Date Of creation" @bind-Date="_date" />
+                </div>
+               
+
+            </div>
+            <div class="Left">
+                <div class="input-group">
+                    <MudFileUpload T="IBrowserFile" FilesChanged="UploadFile1">
+                        <ActivatorContent>
+                            <MudFab Class="minimalist-upload-button"
+                                    StartIcon="@Icons.Material.Filled.Image"
+                                    Label="Upload A main Photo" />
+                        </ActivatorContent>
+                    </MudFileUpload>
+                </div>
+                <div class="input-group">
+                    <MudFileUpload T="IBrowserFile" FilesChanged="UploadFile2">
+                        <ActivatorContent>
+                            <MudFab Class="minimalist-upload-button"
+                                    StartIcon="@Icons.Material.Filled.Image"
+                                    Label="Upload A Secondary Photo" />
+                        </ActivatorContent>
+                    </MudFileUpload>
+                </div>
+                <div class="input-group">
+                    <MudFileUpload T="IBrowserFile" FilesChanged="UploadFile3">
+                        <ActivatorContent>
+                            <MudFab Class="minimalist-upload-button"
+                                    StartIcon="@Icons.Material.Filled.Image"
+                                    Label="Upload A third Photo"  />
+                        </ActivatorContent>
+                    </MudFileUpload>
+                </div>
+                <div class="input-group">
+                    <div style="display:flex;gap:2em;">
+                        <p style="margin-top:0.4em;">Licensed ?</p>
+                        <MudCheckBox @bind-Value="Licensed" Color="Color.Primary"></MudCheckBox>
+                    </div>
+                    
+                </div>
+            </div>
+
+
+            <div class="Rightt">
+                <h2>Chose a Sub Category</h2>
+                <div class="Artformss">
+                    @if (sousCategorieOeuvres != null && sousCategorieOeuvres.Any())
+                    {
+                        foreach (var a in sousCategorieOeuvres)
+                        {
+                            <button @onclick="()=>SelectScat(a)" class="ArtFormBTN">@a.Nom</button>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+        <button class="BtnSuc" @onclick="AddOeuvre">Ajouter</button>
+
+    </div>
+}
+@code {
+    List<Oeuvre> oeuvres;
+    List<Artist> artists;
+    Artist? artist1, artist;
+    List<ArtForm> artforms;
+    List<Oeuvre> filteredoeuvres;
+    List<CategorieOeuvre> categorieOeuvres;
+    List<SousCategorieOeuvre> sousCategorieOeuvres;
+    List<Ville> villes;
+
+    //
+    public ArtForm? selectedArtForm;
+    public Ville? selectedVille;
+    //
+    public bool IsnomClicked = false;
+    public bool IsPrenomClicked = false;
+    public bool IsPhoneClicked = false;
+    public bool IsEmailClicked = false;
+    public bool IsCityClicked = false;
+    public bool IsUserNameClicked = false;
+    public bool IsPassWordClicked = false;
+    public bool IsArtFormClicked = false;
+    //
+    public string NewNom = string.Empty;
+    public string NewPrenom = string.Empty;
+    public string NewPhone = string.Empty;
+    public string NewEmail = string.Empty;
+    public string NewUsename = string.Empty;
+    public string NewPassword = string.Empty;
+    //Oeuvre Add
+    public string Title = string.Empty;
+    public string Description = string.Empty;
+    public string Price = string.Empty;
+    public SousCategorieOeuvre? SelectedSousCAT =null;
+    public bool Licensed { get; set; } = false;
+    private DateTime? _date = DateTime.Today;
+    IBrowserFile _file,_file2,_file3;
+    private async Task UploadFile1(IBrowserFile file)
+    {
+        _file = file;
+        await UploadImageAsync(_file);
+    }
+    private async Task UploadFile2(IBrowserFile file)
+    {
+        _file2 = file;
+        await UploadImageAsync(_file2);
+    }
+    private async Task UploadFile3(IBrowserFile file)
+    {
+        _file3 = file;
+        await UploadImageAsync(_file3);
+    }
+    private async Task UploadImageAsync(IBrowserFile filee)
+    {
+        var formData = new MultipartFormDataContent();
+        var fileContent = new StreamContent(filee.OpenReadStream(maxAllowedSize: 10_000_000)); // Set max file size as needed
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(filee.ContentType);
+
+        formData.Add(fileContent, "file", filee.Name);
+
+        var response = await Http.PostAsync("https://localhost:7148/api/FileUpload/upload-imageO", formData);
+
+    }
+    public void SelectScat(SousCategorieOeuvre scat)
+    {
+        SelectedSousCAT = scat;
+        Console.WriteLine(scat.Nom);
+    }
+    public async Task AddOeuvre()
+    {
+        if (_file == null ||
+            _file2 == null ||
+            _file3 == null||
+            SelectedSousCAT == null ||
+            string.IsNullOrWhiteSpace(Title) ||
+            string.IsNullOrWhiteSpace(Description) ||
+            string.IsNullOrWhiteSpace(Price))
+        {
+            Snackbar.Add("Please fill all the fields first", Severity.Error);
+            return;
+        }
+
+        Oeuvre O = new Oeuvre
+            {
+                Artist = artist,
+                DateDeCreation = _date ?? DateTime.Now,
+                Description = Description,
+                ImageOeuvre1 = _file.Name,
+                ImageOeuvre2 = _file2.Name,
+                ImageOeuvre3 = _file3.Name,
+                IsLicensed = Licensed,
+                Prix = double.Parse(Price),
+                Statut = StatutOeuvre.ForSale,
+                Titre = Title,
+                Scategorie = SelectedSousCAT
+            };
+        await OeuvreService.AddOeuvreAsync(O);
+        Snackbar.Add("Art Piece added successfully", Severity.Success);
+        oeuvres = await OeuvreService.GetOeuvresAsync();
+        filteredoeuvres = oeuvres.OrderBy(c => c.Id).ToList();
+        StateHasChanged();
+    }
+    public async Task DeleteOeuvre(Oeuvre o)
+    {
+        await OeuvreService.DeleteOeuvreAsync(o.Id);
+        Snackbar.Add("Art Piece Deleted successfully", Severity.Success);
+        oeuvres = await OeuvreService.GetOeuvresAsync();
+        filteredoeuvres = oeuvres.OrderBy(c => c.Id).ToList();
+        StateHasChanged();
+    }
+    public async Task ArchiveOeuvre(Oeuvre o)
+    {
+        await OeuvreService.ToggleAvailabilityAsync(o.Id, StatutOeuvre.NotForSale);
+        Snackbar.Add("Art Piece Updated successfully", Severity.Success);
+        oeuvres = await OeuvreService.GetOeuvresAsync();
+        filteredoeuvres = oeuvres.OrderBy(c => c.Id).ToList();
+        StateHasChanged();
+    }
+    public async Task UNArchiveOeuvre(Oeuvre o)
+    {
+        await OeuvreService.ToggleAvailabilityAsync(o.Id, StatutOeuvre.ForSale);
+        Snackbar.Add("Art Piece Updated successfully", Severity.Success);
+        oeuvres = await OeuvreService.GetOeuvresAsync();
+        filteredoeuvres = oeuvres.OrderBy(c => c.Id).ToList();
+        StateHasChanged();
+    }
+    //
+    bool AddAnOeuvreModal = false;
+
+    public void OpenAddModal()
+    {
+        AddAnOeuvreModal = true;
+    }
+    public void CloseAddModal()
+    {
+        AddAnOeuvreModal = false;
+    }
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        oeuvres = await OeuvreService.GetOeuvresAsync();
+        filteredoeuvres = oeuvres.OrderBy(c => c.Id).ToList();
+        categorieOeuvres = await CategorieOeuvreService.GetCategoriesOeuvreAsync();
+        sousCategorieOeuvres = await SousCategorieOeuvreService.GetSousCategoriesOeuvreAsync();
+        villes = await VilleService.GetVillesAsync();
+        artforms = await ArtFormService.GetArtFormsAsync();
+
+        artists = await ArtistService.GetArtistsAsync();
+        artist1 = await ArtistService.GetCurrentArtist();
+        if (artist1 !=null)
+        {
+            artist = artists.FirstOrDefault(c => c.Id == artist1.Id);
+        }
+
+    }
+    public void ChoseVille(Ville ville)
+    {
+        selectedVille = ville;
+        Console.WriteLine(selectedVille.Nom);
+    }
+    public void ChoseArtForm(ArtForm af)
+    {
+        selectedArtForm = af;
+        Console.WriteLine(af.Nom);
+    }
+    public async Task ChnageNom()
+    {
+        if (NewNom == string.Empty)
+        {
+            Snackbar.Add("Provide A valid Last Name", Severity.Error);
+        }
+        else
+        {
+            await ArtistService.ChangeArtistNameAsync(artist.Id, NewNom);
+            await clearInputs();
+            Snackbar.Add("Last Name Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task ChangePrenom()
+    {
+        if (NewPrenom == string.Empty)
+        {
+            Snackbar.Add("Provide A valid First Name", Severity.Error);
+        }
+        else
+        {
+            await ArtistService.ChangePrenomAsync(artist.Id, NewPrenom);
+            await clearInputs();
+            Snackbar.Add("First Name Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task Logout()
+    {
+        await ArtistService.ClearArtistCurrent();
+        await ClientService.ClearClient();
+        NavigationManager.NavigateTo("/");
+
+    }
+    public async Task ChnagePhoneNumber()
+    {
+        if (NewPhone == string.Empty)
+        {
+            Snackbar.Add("Provide A valid Phone Number", Severity.Error);
+        }
+        else
+        {
+            await ArtistService.ChangeTelephoneAsync(artist.Id, NewPhone);
+            await clearInputs();
+            Snackbar.Add("Phone Number Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task DeleteAccount()
+    {
+        await ArtistService.DeleteArtistAsync(artist.Id);
+    }
+    public async Task ChangeEmail()
+    {
+        if (NewEmail == string.Empty)
+        {
+            Snackbar.Add("Provide A valid Email", Severity.Error);
+        }
+        else
+        {
+            await ArtistService.ChangeMailAsync(artist.Id, NewEmail);
+            await clearInputs();
+            Snackbar.Add("Email Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task ChnageUsername()
+    {
+        if (NewUsename == string.Empty)
+        {
+            Snackbar.Add("Provide A valid User Name", Severity.Error);
+        }
+        else
+        {
+            await ArtistService.ChangeUseNameAsync(artist.Id, NewUsename);
+            await clearInputs();
+            Snackbar.Add("UserName Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task ChnagePassword()
+    {
+        if (NewUsename == string.Empty)
+        {
+            Snackbar.Add("Provide A valid Password", Severity.Error);
+        }
+        else
+        {
+
+            await clearInputs();
+        }
+    }
+    public async Task ChangeVille()
+    {
+        if (selectedVille == null)
+        {
+            Snackbar.Add("Provide A valid City", Severity.Error);
+        }
+        else
+        {
+            await ArtistService.ChangeVilleAsync(artist.Id, selectedVille.Id);
+            await clearInputs();
+            Snackbar.Add("City Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task ChangeArtForm()
+    {
+        if (selectedArtForm == null)
+        {
+            Snackbar.Add("Provide A valid Art Form", Severity.Error);
+        }
+        else
+        {
+            await ArtistService.ChangeArtFormAsync(artist.Id, selectedArtForm.Id);
+            await clearInputs();
+            Snackbar.Add("Art Form Changed Succesfully", Severity.Success);
+        }
+    }
+
+    public async Task clearInputs()
+    {
+        NewNom = string.Empty;
+        NewPrenom = string.Empty;
+        NewPhone = string.Empty;
+        NewEmail = string.Empty;
+        NewUsename = string.Empty;
+        NewPassword = string.Empty;
+        IsnomClicked = false;
+        IsPrenomClicked = false;
+        IsPhoneClicked = false;
+        IsEmailClicked = false;
+        IsCityClicked = false;
+        IsUserNameClicked = false;
+        IsPassWordClicked = false;
+        IsArtFormClicked = false;
+        artists = await ArtistService.GetArtistsAsync();
+        artist1 = await ArtistService.GetCurrentArtist();
+        artist = artists.FirstOrDefault(c => c.Id == artist1.Id);
+        selectedVille=null;
+        selectedArtForm = null;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
+    void ShowNom()
+    {
+        IsnomClicked = true;
+    }
+    void showprenom()
+    {
+        IsPrenomClicked = true;
+    }
+    void ShowNumber()
+    {
+        IsPhoneClicked = true;
+    }
+    void ShowEmail()
+    {
+        IsEmailClicked = true;
+    }
+    void ShowCity()
+    {
+        IsCityClicked = true;
+    }
+    void ShowArtForm()
+    {
+        IsArtFormClicked = true;
+    }
+    void ShowUsername()
+    {
+        IsUserNameClicked = true;
+    }
+    void ShowPassWord()
+    {
+        IsPassWordClicked = true;
+    }
+}

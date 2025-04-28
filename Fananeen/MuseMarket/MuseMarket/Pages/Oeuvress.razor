@@ -1,0 +1,205 @@
+﻿@page "/Oeuvres"
+@inject OeuvreService OeuvreService
+@inject ArtistService ArtistService
+@inject CategorieOeuvreService CategorieOeuvreService
+@inject SousCategorieOeuvreService SousCategorieOeuvreService
+@inject VilleService VilleService
+@inject NavigationManager NavigationManager
+@inject ClientService ClientService
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Cormorant", serif;
+        transition: all 0.25s ease;
+    }
+
+    body {
+        background-color: #fafafa;
+        min-height: 100vh;
+        overflow-x: hidden;
+        color: #333;
+    }
+
+    :root {
+        --primary: #5b8a78;
+        --primary-light: #7aa090;
+        --primary-dark: #4a7264;
+        --secondary: #254268;
+        --secondary-light: #365a85;
+        --secondary-dark: #1a3050;
+        --background: #f9f9f7;
+        --card: #ffffff;
+        --text: #333333;
+        --text-light: #666666;
+        --border: #e6e6e3;
+    }
+
+</style>
+<Nav />
+<div class="m">
+   
+    <div class="Shop">
+        <h2>Discover a curated world of ArtWorks—filter by category, city, or name to find your perfect masterpiece.</h2>
+        <div class="nav2">
+            <div class="inputts">
+                <MudAutocomplete T="string" Label="Search by Art Piece's Title" @bind-Value="value1" SearchFunc="@Search1" />
+                <button class="btnInput" @onclick="FilterByNom"> Chercher</button>
+            </div>
+            <div class="Villess">
+                <MudMenu Label="Filter By City" MaxHeight="450" FullWidth="true">
+                    @if (villes != null && villes.Any())
+                    {
+                        @foreach (var v in villes)
+                        {
+                            <MudMenuItem OnClick="()=>FilterByCity(v.Id)">@v.Nom</MudMenuItem>
+                        }
+                        <MudMenuItem OnClick="()=>ShowALL()">Show ALL</MudMenuItem>
+                    }
+
+                </MudMenu>
+            </div>
+            <div class="Villess">
+                <MudMenu Label="Filter By Artist" MaxHeight="450" FullWidth="true">
+                    @if (artists != null && artists.Any())
+                    {
+                        @foreach (var v in artists)
+                        {
+                            <MudMenuItem >@v.Nom @v.Prenom</MudMenuItem>
+                        }
+                        <MudMenuItem OnClick="()=>ShowALL()">Show ALL</MudMenuItem>
+                    }
+
+                </MudMenu>
+            </div>
+            <div class="Villess">
+                <MudMenu Label="Filter By Category and sub Category" MaxHeight="450" FullWidth="true">
+                    @if (sousCategorieOeuvres != null && sousCategorieOeuvres.Any())
+                    {
+                        @foreach (var v in sousCategorieOeuvres)
+                        {
+
+                            <MudMenuItem OnClick="()=>FilterByCity(v.Id)" Class="full-width-menu-item">@v.Categorie.Nom : @v.Nom</MudMenuItem>
+                                
+                        }
+                        <MudMenuItem OnClick="()=>ShowALL()">Show ALL</MudMenuItem>
+                    }
+
+                </MudMenu>
+            </div>
+            <div class="Villess">
+                <button class="btnInput" @onclick="FilterByPrice">Filter by Price</button>
+            </div>
+            <div class="Villess">
+                <button class="btnInput" @onclick="FilterByAvailability">Only Show Available Pieces</button>
+            </div>
+        </div>
+        <div class="Cardss">
+            @if (filteredoeuvres != null && filteredoeuvres.Any())
+            {
+                @foreach (var o in filteredoeuvres.Where(c=>c.Statut==StatutOeuvre.ForSale).ToList())
+                {
+                    <div class="card">
+                        <div class="img-container">
+                            <img src="https://localhost:7148/ImagesOeuvre/@o.ImageOeuvre2" />
+                        </div>
+                        <div class="content">
+                            <div class="tags">
+                                <span class="tag">Title : @o.Titre</span>
+                                <span class="tag">Made By : Mr/Mrs  <u>@o.Artist.Nom @o.Artist.Prenom</u></span>
+                                <span class="tag">Price : <u>@o.Prix</u> Dh</span>
+                                @if (o.IsLicensed)
+                                {
+                                    <span class="tag">Is The Art Piece licensed : YES</span>
+                                }
+                                else
+                                {
+                                    <span class="tag">Is The Art Piece licensed : NO</span>
+
+                                }
+                                
+                            </div>
+                            <p>@o.Description</p>
+                            <button class="BtnPrimary" @onclick="()=>Consulter(o)">Consult Now !</button>
+                        </div>
+                    </div>
+                }
+
+            }
+            else
+            {
+                <h2>There are no Art Pieces In this city or with this Category or this name </h2>
+            }
+        </div>
+    </div>
+
+   
+</div>
+<Footer />
+@code {
+    List<Oeuvre> oeuvres;
+    List<Artist> artists;
+    List<Oeuvre> filteredoeuvres;
+    List<CategorieOeuvre> categorieOeuvres;
+    List<SousCategorieOeuvre> sousCategorieOeuvres;
+    List<Ville> villes;
+    Client client;
+    private string value1;
+    private string[] states;
+
+    protected override async Task OnInitializedAsync()
+    {
+        oeuvres = await OeuvreService.GetOeuvresAsync();
+        filteredoeuvres = oeuvres.OrderBy(c => c.Id).ToList();
+        artists = await ArtistService.GetArtistsAsync();
+        categorieOeuvres = await CategorieOeuvreService.GetCategoriesOeuvreAsync();
+        sousCategorieOeuvres = await SousCategorieOeuvreService.GetSousCategoriesOeuvreAsync();
+        villes = await VilleService.GetVillesAsync();
+        states = oeuvres.Select(c => c.Titre).ToArray();
+    }
+    private async Task<IEnumerable<string>> Search1(string value, CancellationToken token)
+    {
+        await Task.Delay(5, token);
+        if (string.IsNullOrEmpty(value))
+            return states;
+        return states.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+
+    }
+    public void Filter(int id)
+    {
+        filteredoeuvres = oeuvres.Where(c => c.Scategorie.Id == id)
+                                 .OrderBy(c => c.Id)
+                                 .ToList();
+        StateHasChanged();
+    }
+    public void FilterByCity(int id)
+    {
+        filteredoeuvres = oeuvres.Where(c => c.Artist.ville.Id == id)
+                                 .ToList();
+        StateHasChanged();
+    }
+    public void FilterByNom()
+    {
+        filteredoeuvres = oeuvres.Where(c => c.Titre == value1).ToList();
+    }
+    public void FilterByPrice()
+    {
+        filteredoeuvres = oeuvres.OrderBy(c => c.Prix).ToList();
+    }
+    public void FilterByAvailability()
+    {
+        filteredoeuvres = oeuvres.Where(c => c.Statut==StatutOeuvre.ForSale).ToList();
+    }
+    public void ShowALL()
+    {
+        filteredoeuvres = oeuvres.OrderBy(c => c.Id).ToList();
+    }
+
+    public void Consulter( Oeuvre o)
+    {
+        OeuvreService.SetOeuvre(o);
+        NavigationManager.NavigateTo("/ConsulterOeuvre");
+
+    }
+}

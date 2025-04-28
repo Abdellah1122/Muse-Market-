@@ -1,0 +1,194 @@
+﻿@page "/Artists"
+@inject OeuvreService OeuvreService
+@inject ArtistService ArtistService
+@inject CategorieOeuvreService CategorieOeuvreService
+@inject SousCategorieOeuvreService SousCategorieOeuvreService
+@inject ArtFormService ArtFormService
+@inject VilleService VilleService
+@inject NavigationManager NavigationManager
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Cormorant", serif;
+        transition: all 0.25s ease;
+    }
+
+    body {
+        background-color: #fafafa;
+        min-height: 100vh;
+        overflow-x: hidden;
+        color: #333;
+    }
+
+    :root {
+        --primary: #5b8a78;
+        --primary-light: #7aa090;
+        --primary-dark: #4a7264;
+        --secondary: #254268;
+        --secondary-light: #365a85;
+        --secondary-dark: #1a3050;
+        --background: #f9f9f7;
+        --card: #ffffff;
+        --text: #333333;
+        --text-light: #666666;
+        --border: #e6e6e3;
+    }
+</style>
+<Nav />
+<div class="m">
+    
+    <div class="Shop">
+        <h2>Unveil extraordinary artists and their works—explore by city, art form, or name to find your next inspiration</h2>
+        <div class="nav2">
+            <div class="inputts">
+               
+                    <MudAutocomplete T="string" Label="Search by Artist's Name" @bind-Value="value1" SearchFunc="@Search1" />
+                
+                <button class="btnInput" @onclick="FilterByNom"> Chercher</button>
+            </div>
+            <div class="Villess">
+                <MudMenu Label="Filter by City" MaxHeight="450" FullWidth="true">
+                    @if (villes != null && villes.Any())
+                    {
+                        @foreach (var v in villes)
+                        {
+                            <MudMenuItem OnClick="()=>FilterByCity(v.Id)">@v.Nom</MudMenuItem>
+                        }
+                        <MudMenuItem OnClick="()=>ShowALL()">Show ALL</MudMenuItem>
+                    }
+
+                </MudMenu>
+            </div>
+            <div class="Villess">
+                <MudMenu Label="Filter by Art Form" MaxHeight="450" FullWidth="true">
+                    @if (artForms != null && artForms.Any())
+                    {
+                        @foreach (var v in artForms)
+                        {
+                            <MudMenuItem OnClick="()=>Filter(v.Id)">@v.Nom</MudMenuItem>
+                        }
+                        <MudMenuItem OnClick="()=>ShowALL()">Show ALL</MudMenuItem>
+                    }
+
+                </MudMenu>
+            </div>
+            <div class="Villess">
+                <button class="btnInput" @onclick="FilterByAvailability">Only Show Available Artists</button>
+            </div>
+            <div class="Villess">
+                <button class="btnInput" @onclick="FilterByPieceSold">Filter By Pieces Sold</button>
+            </div>
+            <div class="Villess">
+                <button class="btnInput" @onclick="FilterByProfileVisites">Filter By Profile Visites</button>
+            </div>
+            
+        </div>
+        <div class="Cardss">
+            @if (filteredartists != null && filteredartists.Any() && villes!=null && villes.Any())
+            {
+                @foreach (var o in filteredartists)
+                {
+                    <div class="card">
+                        <div class="img-container">
+                            <img src="https://localhost:7148/ImagesArtists/@(o.ImageArtist)" alt="Image" />
+                        </div>
+                        <div class="content">
+                            <div class="tags">
+                                <span class="tag">Is Available For Work: <u>@o.IsAvailable</u></span>
+                                <span class="tag">Categorie D'art : <u>@o.artForm.Nom</u></span>
+                                <span class="tag">Nom et Prenom: <b> @o.Nom @o.Prenom</b></span>
+                                <span class="tag">Ville : <b> @o.ville.Nom</b></span>
+                                <span class="tag">Nombre de vente : <b> @o.NbrOeuvreVendu Oeuvres Vendus</b></span>
+                                <span class="tag">Nombre de Visite : <b> @o.NbrFoisVisite de visite</b></span>
+                                <span class="tag">Rating :<MudRating ReadOnly="true" SelectedValue="@o.Rating" Size="Size.Small" /></span>
+                                
+                            </div>
+
+                            <button class="BtnPrimary" @onclick="()=>ViewProfile(o)">View Profile Now !</button>
+                        </div>
+                    </div>
+                }
+
+            }
+            else
+            {
+                <h2>There are no Artists In this city or with this Category or this name</h2>
+            }
+        </div>
+    </div>
+
+    
+</div>
+<Footer />
+@code {
+    List<Artist> artists;
+    List<Artist> filteredartists;
+    List<ArtForm> artForms;
+    List<Ville> villes;
+    private string value1;
+    private string[] states;
+
+    private async Task<IEnumerable<string>> Search1(string value, CancellationToken token)
+    {
+        await Task.Delay(5, token);
+        if (string.IsNullOrEmpty(value))
+            return states;
+        return states.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+        
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        artForms = await ArtFormService.GetArtFormsAsync();
+        artists = await ArtistService.GetArtistsAsync();
+        filteredartists = artists.OrderByDescending(c => c.Rating).ToList();
+        villes = await VilleService.GetVillesAsync();
+        states = artists.Select(c => c.Nom).ToArray();
+
+    }
+
+    public void ViewProfile(Artist a)
+    {
+        ArtistService.SetArtist(a);
+        NavigationManager.NavigateTo("/ConsulterArtist");
+
+    }
+    public void Filter(int id)
+    {
+        filteredartists = artists.Where(c => c.artForm.Id == id)
+                                 .OrderByDescending(c => c.Rating)
+                                 .ToList();
+        StateHasChanged();
+    }
+    public void FilterByAvailability()
+    {
+        filteredartists = artists.Where(c => c.IsAvailable == true).ToList();
+    }
+    public void FilterByPieceSold()
+    {
+        filteredartists = artists.OrderByDescending(c => c.NbrOeuvreVendu).ToList();
+    }
+    public void FilterByProfileVisites()
+    {
+        filteredartists = artists.OrderByDescending(c => c.NbrFoisVisite).ToList();
+    }
+    public void FilterByNom()
+    {
+        filteredartists = artists.Where(c => c.Nom == value1).ToList();
+    }
+    public void FilterByCity(int id)
+    {
+        filteredartists = artists.Where(c => c.ville.Id == id)
+                                 .OrderByDescending(c => c.Rating)
+                                 .ToList();
+        StateHasChanged();
+    }
+    public void ShowALL()
+    {
+        filteredartists = artists.OrderByDescending(c => c.Rating)
+                                 .ToList(); ;
+    }
+}

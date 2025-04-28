@@ -1,0 +1,81 @@
+﻿@media (max-width: 768px) {
+    h1 {
+        font-size: 1.8rem; /* Smaller font size for mobile */
+    }
+
+    h2 {
+        font-size: 1.2rem; /* Smaller font size for mobile */
+    }
+
+    p {
+        font-size: 1em; /* Smaller font size for mobile */
+    }
+
+    .m {
+        padding: 1em; /* Reduce padding for mobile */
+    }
+
+    .Choose, .Cardss, .UpoadImage {
+        padding: 1.5em; /* Reduce padding for mobile */
+    }
+
+    .U, .L {
+        flex-direction: column; /* Stack columns vertically on mobile */
+        gap: 1.5em; /* Reduce gap for mobile */
+    }
+
+    .UL, .LR {
+        padding: 1.5em; /* Reduce padding for mobile */
+    }
+
+    .Cont {
+        flex-direction: column; /* Stack cards vertically on mobile */
+        gap: 1.5em; /* Reduce gap for mobile */
+    }
+
+    .card {
+        max-width: 100%; /* Full width for cards on mobile */
+    }
+
+    .ML1 {
+        flex-direction: column; /* Stack upload section vertically on mobile */
+        gap: 1.5em; /* Reduce gap for mobile */
+    }
+
+        .ML1 p, .upload-container {
+            width: 100%; /* Full width for text and upload container on mobile */
+        }
+
+    .image-preview {
+        flex-direction: column; /* Stack image preview vertically on mobile */
+        gap: 1em; /* Reduce gap for mobile */
+    }
+
+        .image-preview img {
+            max-width: 100%; /* Full width for images on mobile */
+        }
+
+    .image-carousel {
+        height: 300px; /* Reduce carousel height for mobile */
+    }
+
+    .carousel-overlay {
+        top: 50%; /* Adjust overlay position for mobile */
+        width: 90%; /* Full width for overlay on mobile */
+        padding: 1em; /* Reduce padding for mobile */
+    }
+
+        .carousel-overlay p {
+            font-size: 1.2rem; /* Smaller font size for mobile */
+        }
+
+    .PostCaroussel {
+        width: 90%; /* Full width for carousel text on mobile */
+        padding: 1em; /* Reduce padding for mobile */
+    }
+
+    .btnCar {
+        width: 100%; /* Full width for buttons on mobile */
+        font-size: 1em; /* Smaller font size for mobile */
+    }
+}

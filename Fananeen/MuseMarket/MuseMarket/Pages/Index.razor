@@ -1,0 +1,872 @@
+﻿@page "/"
+@inject SousCategorieOeuvreService SousCategorieOeuvreService
+@inject CategorieOeuvreService CategorieOeuvreService
+@inject NavigationManager NavigationManager
+@inject ArtistService ArtistService
+@inject OeuvreService OeuvreService
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@inject IImageComparisonService ImageComparisonService
+
+
+@using System.Text.RegularExpressions;
+@using Microsoft.AspNetCore.Components.Forms
+@inject ISnackbar Snackbar
+
+@using System.IO
+@using Microsoft.AspNetCore.Components.Forms
+<style>
+    :root {
+        --primary-color: #254268;
+        --primary-dark: #1d3553;
+        --secondary-color: #5b8a78;
+        --secondary-light: #6c9a88;
+        --accent-color: #e8f0ed;
+        --danger-color: #d84040;
+        --danger-dark: #c53030;
+        --gold-accent: #d4c197;
+        --light-bg: #f7f7f7;
+        --card-bg: #ffffff;
+        --text-dark: #2c3e50;
+        --text-medium: #546e7a;
+        --text-light: #78909c;
+        --border-radius: 6px;
+        --box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Cormorant", serif;
+        transition: var(--transition);
+    }
+
+    body {
+        background-color: var(--light-bg);
+        min-height: 100vh;
+        overflow-x: hidden;
+        color: var(--text-dark);
+        line-height: 1.6;
+        background-image: linear-gradient(to right, rgba(91, 138, 120, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(91, 138, 120, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+
+    h1 {
+        font-size: 2rem;
+        font-weight: 500;
+        color: var(--primary-color);
+        margin-bottom: 0.75rem;
+        letter-spacing: 0.5px;
+        position: relative;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+        font-weight: 500;
+        color: var(--primary-color);
+        margin-bottom: 0.75rem;
+        letter-spacing: 0.5px;
+        position: relative;
+    }
+
+    p {
+        font-size: 1.1em;
+        line-height: 1.8;
+        color: #555;
+        font-weight: 300;
+        margin-bottom: 1.5em;
+    }
+
+    button {
+        font-size: 0.9em;
+        font-weight: 400;
+        padding: 0.8em 2em;
+        border-radius: 2px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        letter-spacing: 0.5px;
+        transition: all 0.2s ease;
+    }
+
+    .BtnPrimary {
+        background-color: #2E5077;
+        color: #fff;
+    }
+
+        .BtnPrimary:hover {
+            background-color: #254268;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(46, 80, 119, 0.2);
+        }
+
+    .BtnSuc {
+        background-color: #6A9C89;
+        color: #fff;
+    }
+
+        .BtnSuc:hover {
+            background-color: #5b8a78;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(106, 156, 137, 0.2);
+        }
+
+    .BtnDanger {
+        background-color: #D84040;
+        color: #fff;
+    }
+
+        .BtnDanger:hover {
+            background-color: #c53030;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(216, 64, 64, 0.2);
+        }
+
+    .m {
+        display: flex;
+        flex-direction: column;
+        gap: 3em;
+        padding: 1em 2em;
+        max-width: 1500px;
+        margin: 0 auto;
+    }
+
+    .Choose {
+        display: flex;
+        flex-direction: column;
+        gap: 2.5em;
+        padding: 3em;
+        background-color: #fff;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .U, .L {
+        display: flex;
+        gap: 3em;
+    }
+
+    .UR, .UL, .LL, .LR {
+        flex: 1;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+        .UR img, .LL img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+            .UR img:hover, .LL img:hover {
+                transform: scale(1.03);
+            }
+
+    .UL, .LR {
+        padding: 2.5em;
+        background-color: #fcfcfc;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .Cardss {
+        display: flex;
+        flex-direction: column;
+        gap: 2.5em;
+        padding: 3em;
+        background-color: #fff;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .Cont {
+        display: flex;
+        gap: 3em;
+        justify-content: center;
+    }
+
+
+    .card {
+        background-color: var(--card);
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        position: relative;
+    }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.07);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary);
+            transition: width 0.4s ease;
+        }
+
+        .card:hover::after {
+            width: 100%;
+        }
+
+    .img-container {
+        height: 260px;
+        overflow: hidden;
+        position: relative;
+    }
+
+        .img-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(37, 66, 104, 0) 70%, rgba(37, 66, 104, 0.1) 100%);
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+    .card:hover .img-container::before {
+        opacity: 1;
+    }
+
+    .img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+
+    .card:hover .img-container img {
+        transform: scale(1.05);
+    }
+
+    .content {
+        padding: 25px;
+    }
+
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .tag {
+        background-color: rgba(91, 138, 120, 0.08);
+        color: var(--primary-dark);
+        padding: 5px 10px;
+        border-radius: 2px;
+        font-size: 13px;
+        font-weight: 400;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+        .tag:hover {
+            background-color: rgba(91, 138, 120, 0.15);
+        }
+
+        .tag u {
+            text-decoration: none;
+            color: var(--secondary);
+            font-weight: 500;
+        }
+
+    .content p {
+        margin: 15px 0;
+        font-size: 15px;
+        color: var(--text-light);
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .BtnPrimary {
+        background-color: var(--primary-color);
+        color: var(--accent-color);
+        border: 1px solid var(--secondary);
+        padding: 10px 20px;
+        border-radius: 2px;
+        cursor: pointer;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        transition: all 0.3s;
+        width: 100%;
+        margin-top: 15px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .BtnPrimary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background-color: var(--secondary);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        
+
+    /* Empty state styling */
+    .Cardss h2 {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 40px;
+        background-color: var(--card);
+        border-radius: 4px;
+        color: var(--text-light);
+        font-weight: 400;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .UpoadImage {
+        padding: 3em;
+        background-color: #fff;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .ML1 {
+        display: flex;
+        gap: 3em;
+        align-items: center;
+    }
+
+        .ML1 p {
+            width: 50%;
+        }
+
+    .upload-container {
+        padding: 2em;
+        border-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5em;
+        justify-content:center;
+        align-items:center
+    }
+
+    .upload-prompt {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 1.5em;
+        padding: 2em;
+    }
+
+        .upload-prompt h2 {
+            font-size: 1.2em;
+            font-weight: 400;
+            color: #555;
+        }
+
+    input[type="file"] {
+        background-color: #f2f2f2;
+        padding: 0.8em;
+        border-radius: 2px;
+        width: 100%;
+        max-width: 300px;
+        border: 1px solid #e5e5e5;
+    }
+
+    .image-preview {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2em;
+        padding: 1em;
+    }
+
+        .image-preview img {
+            max-width: 250px;
+            max-height: 250px;
+            border-radius: 2px;
+            border: 1px solid #eee;
+        }
+
+    .image-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+    }
+
+        .image-info p {
+            margin-bottom: 0.5em;
+            font-size: 0.9em;
+        }
+
+    
+
+    .image-carousel {
+        width: 100%;
+        height: 675px;
+        overflow: hidden;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        margin-bottom: var(--spacing-md);
+        border: 1px solid rgba(91, 138, 120, 0.1);
+        position: relative;
+    }
+
+        .image-carousel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: calc(var(--border-radius) - 1px);
+            pointer-events: none;
+        }
+
+    .mud-carousel {
+        width: 100% !important;
+        height: 100%;
+        border-radius: var(--border-radius);
+    }
+
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+
+    /* New styles for overlay content */
+    .carousel-content-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    .carousel-overlay {
+        position: absolute;
+        top: 86%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 10;
+        width:76%;
+        padding:1em 2em;
+    }
+
+        .carousel-overlay p {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: white;
+        }
+
+    .Introo {
+    display:flex;
+    flex-direction:column;
+    gap:1em;
+    justify-content:center;
+    align-items:center; 
+    }
+
+    .PostCaroussel p {
+        font-size:1.3em;
+        text-align:center;
+    }
+
+    .PostCaroussel  {
+        width:80%;
+        padding:1em 1.5em;
+        background-color:white;
+        border-radius:3px;
+    }
+
+    .img-overlay::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5); 
+        z-index: 1;
+    }
+
+    .btnCar{
+        background-color: #e8f0ed;
+        width:13em;
+        font-size:1.2em;
+        color: #2c3e50;
+    }
+    .btnCar:hover{
+            background-color: #d4c197;
+    }
+
+    .minimalist-upload-button {
+        background-color: var(--secondary-color) !important;
+        color: white !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+        padding: 1em 2.2em !important;
+        transition: background-color 0.2s !important;
+    }
+
+        .minimalist-upload-button:hover {
+            background-color: var(--secondary-light) !important;
+        }
+
+    .upload-area{
+        width:90%;
+        padding:4em 1em;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+    }
+</style>
+<Nav />
+<div class="m">
+    
+        <div class="Introo">
+            <div class="image-carousel">
+                <MudCarousel Class="mud-width-full" ShowArrows="@arrows" ShowBullets="@bullets" AutoCycle="@autocycle" TData="object">
+                    <MudCarouselItem Transition="transition">
+                        <div class="carousel-content-container">
+                            <div class="img-overlay">
+							    <img src="/Images/2.jpg"  />
+                            </div>
+                            
+                            <div class="carousel-overlay">
+                                <p>Explore our carefully curated collection of exquisite art pieces, each thoughtfully listed to offer you a unique journey of discovery and inspiration.</p>
+                                <button class="btnCar" @onclick="NavigateToOeuvres">Explore Now !</button>
+                            </div>
+                        </div>
+                    </MudCarouselItem>
+                    <MudCarouselItem Transition="transition">
+                        <div class="carousel-content-container">
+                            <div class="img-overlay">
+							    <img src="/Images/1.jpg" />
+                            </div>
+                            
+                            <div class="carousel-overlay">
+                                <p>Discover the diverse and talented artists featured in our collection, each bringing their unique vision and creativity to life.</p>
+                                <button class="btnCar"@onclick="NavigateToArtists">Discover Now!</button>
+                            </div>
+                        </div>
+                    </MudCarouselItem>
+                    <MudCarouselItem Transition="transition">
+                        <div class="carousel-content-container">
+                            <div class="img-overlay">
+							    <img src="/Images/4 (2).jpg"  />
+                            </div>
+                            <div class="carousel-overlay">
+                                <p>Upload an image of your artwork, and let us find a similar piece from our curated collection that matches its style and essence.</p>
+                                <button class="btnCar" @onclick="() => ScrollToDiv(Ourstory)">Find Now!</button>
+                            </div>
+                        </div>
+                    </MudCarouselItem>
+                    <MudCarouselItem Transition="transition">
+                        <div class="carousel-content-container">
+                            <div class="img-overlay">
+                                <img src="/Images/3.jpg"  />
+                            </div>
+                            <div class="carousel-overlay">
+                            <p>Sign up now to showcase your unique creations or explore and purchase amazing artwork. Whether you're here to share your talent or find the perfect piece—or even hire an artist—you’re in the right place!</p>
+                                <button class="btnCar" @onclick="SignUp">Sin Up Now!</button>
+                            </div>
+                        </div>
+                    </MudCarouselItem>
+                    <MudCarouselItem Transition="transition">
+                        <div class="carousel-content-container">
+                            <div class="img-overlay">
+                                <img src="/Images/comm.jpg" />
+                            </div>
+                            <div class="carousel-overlay">
+                            <p>Check out all the listed commissions or post one yourself! Whether you're looking for a specific service or offering your own skills, this is the perfect place to connect !</p>
+                            <button class="btnCar" @onclick="NavigateToCommisions">View Now !</button>
+                            </div>
+                        </div>
+                    </MudCarouselItem>
+                </MudCarousel>
+            </div>
+            <div class="PostCaroussel">
+                <p>MuseMarket is where artists, creators, and collectors come together to buy, sell, and showcase unique artworks. It’s a bold, vibrant space designed to fuel creativity, connect talent, and make art accessible to everyone—whether you're a seasoned artist or a passionate collector, this is where the culture lives.</p>
+            </div>
+            
+        </div>
+       
+        <div class="Cardss">
+            <h1 >Explore our highest rated Artists !</h1>
+            <div class="Cont">
+            @for(int i=0;i<3 ; i++)
+            {
+                @if(artists!=null && artists.Any())
+                {
+                   Artist o = artists[i];
+                <div class="card">
+                    <div class="img-container">
+                        <img src="https://localhost:7148/ImagesArtists/@(o.ImageArtist)" alt="Image" />
+                    </div>
+                    <div class="content">
+                        <div class="tags">
+                            <span class="tag">Is Available For Work: <u>@o.IsAvailable</u></span>
+                            <span class="tag">Categorie D'art : <u>@o.artForm.Nom</u></span>
+                            <span class="tag">Nom et Prenom: <b> @o.Nom @o.Prenom</b></span>
+                            <span class="tag">Ville : <b> @o.ville.Nom</b></span>
+                            <span class="tag">Nombre de vente : <b> @o.NbrOeuvreVendu Oeuvres Vendus</b></span>
+                            <span class="tag">Nombre de Visite : <b> @o.NbrFoisVisite de visite</b></span>
+                            <span class="tag">Rating :<MudRating ReadOnly="true" SelectedValue="@o.Rating" Size="Size.Small" /></span>
+
+                        </div>
+
+                        <button class="BtnPrimary" @onclick="()=>ViewProfile(o)">View Profile Now !</button>
+                    </div>
+                </div> 
+                }
+                
+            }
+        </div>
+        <button class="BtnPrimary" @onclick="GotoArtists">View All Artists</button>
+        </div>
+        
+    <div class="Cardss">
+        <h1>Discover Our Latest Listed art pieces !</h1>
+        <div class="Cont">
+            @for (int i = 0; i < 3; i++)
+            {
+                @if (oeuvres != null && oeuvres.Any())
+                {
+                    Oeuvre o = oeuvres[i];
+                    <div class="card">
+                        <div class="img-container">
+                            <img src="https://localhost:7148/ImagesOeuvre/@o.ImageOeuvre2" />
+                        </div>
+                        <div class="content">
+                            <div class="tags">
+                                <span class="tag">Title : @o.Titre</span>
+                                <span class="tag">Made By : Mr/Mrs  <u>@o.Artist.Nom @o.Artist.Prenom</u></span>
+                                <span class="tag">Price : <u>@o.Prix</u> Dh</span>
+                                @if (o.IsLicensed)
+                                {
+                                    <span class="tag">Is The Art Piece licensed : YES</span>
+                                }
+                                else
+                                {
+                                    <span class="tag">Is The Art Piece licensed : NO</span>
+
+                                }
+
+                            </div>
+                            <p>@o.Description</p>
+                            <button class="BtnPrimary" @onclick="()=>Consulter(o)">Consult Now !</button>
+                        </div>
+                    </div>
+                }
+
+            }
+        </div>
+        <button class="BtnPrimary" @onclick="GotoOeuvres">View All the oeuvres Listed !</button>
+    </div>
+
+
+        <div class="News">
+
+        </div>
+
+    <div class="UpoadImage">
+        <h1>Have an Idea? Upload & Discover Similar Art!</h1>
+        <div class="ML1">
+            <p>Got a special idea in mind? Simply upload a picture of your inspiration, and our system will analyze it to find the closest matching art piece in our collection. If you're looking for something truly unique, we can also connect you with a talented artist who specializes in mimicking or interpreting your style. Whether you’re searching for a similar art piece or want a custom creation, we’ve got you covered. Let us help you discover art that resonates with your vision or bring that vision to life with an artist's touch. Upload now and start your creative journey today!</p>
+            <div class="upload-container">
+                <div class="upload-area">
+                    <h2>Upload A Picture by Clicking below! and let us help u find a similar</h2>
+                    @if (_file == null)
+                    {
+                        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+                            <ActivatorContent>
+                                <MudFab Class="minimalist-upload-button"
+                                        StartIcon="@Icons.Material.Filled.Image"
+                                        Label="Upload An Art Piece Photo" />
+                            </ActivatorContent>
+                        </MudFileUpload>
+                    }
+                    else
+                    {
+                        <p> Picture : @_file.Name</p>
+                        <div style="display:flex;flex-direction:row;gap:7em;">
+                            <button @onclick="ProcessImageAsync" class="BtnSuc">Process and find similar</button>
+                            <button @onclick="Delete" class="BtnDanger">Delete and chose another</button>
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+  
+</div>
+<Footer />
+<script>
+    function scrollToElement(className) {
+        const element = document.querySelector('.' + className);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+</script>
+
+
+@code{
+
+    List<CategorieOeuvre> categorieOeuvres;
+    List<SousCategorieOeuvre> sousCategorieOeuvres;
+    List<Artist> artists;
+    List<Oeuvre> oeuvres;
+    private string closestImage;
+    //
+    private bool arrows = true;
+    private bool bullets = false;
+    private bool autocycle = true;
+    private Transition transition = Transition.Fade;
+    //
+
+    //
+    private string scrollToClass = "Introo";
+    private string Ourstory = "UpoadImage";
+    //
+    private async Task ScrollToDiv(string className)
+    {
+        scrollToClass = className; 
+        await JSRuntime.InvokeVoidAsync("scrollToElement", scrollToClass);
+    }
+    //
+    private IBrowserFile _file;
+    private string? _imagePreview;
+    private byte[]? _imageBuffer;
+    public Oeuvre FoundOeuvre;
+    private async Task UploadFiles(IBrowserFile file)
+    {
+        if (file == null)
+        {
+            Console.WriteLine("No file selected!");
+            return;
+        }
+        _file = file;
+        var buffer = new byte[file.Size];
+        await file.OpenReadStream().ReadAsync(buffer);
+        _imageBuffer = buffer;
+        _imagePreview = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+        await ProcessImageAsync();
+    }
+
+    private async Task ProcessImageAsync()
+    {
+        try
+        {
+            if (_imageBuffer == null)
+            {
+                Console.WriteLine("No image data available for processing.");
+                return;
+            }
+
+            closestImage = await ImageComparisonService.CompareImageAsync(_imageBuffer);
+            Console.WriteLine(closestImage);
+            FoundOeuvre = oeuvres
+                .FirstOrDefault(o => o.ImageOeuvre1 == "result" || o.ImageOeuvre2 == "result" || o.ImageOeuvre3 == "result");
+            Console.WriteLine(FoundOeuvre.Titre);
+
+            StateHasChanged(); 
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error comparing image: " + ex.Message);
+        }
+    }
+
+    public void Delete()
+    {
+        _file = null;
+    }
+
+
+
+    public void NavigateToOeuvres()
+    {
+        NavigationManager.NavigateTo("/Oeuvres");
+    }
+    public void NavigateToCommisions()
+    {
+        NavigationManager.NavigateTo("/Commisions");
+    }
+    public void NavigateToArtists()
+    {
+        NavigationManager.NavigateTo("/Artists");
+    }
+    public void SignUp()
+    {
+        NavigationManager.NavigateTo("/SignUp");
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        categorieOeuvres = await CategorieOeuvreService.GetCategoriesOeuvreAsync();
+        sousCategorieOeuvres = await SousCategorieOeuvreService.GetSousCategoriesOeuvreAsync();
+        artists = await ArtistService.GetArtistsAsync();
+        if (artists != null)
+        {
+
+            artists = artists.OrderByDescending(c => c.Rating).ToList();
+        }
+        oeuvres=await OeuvreService.GetOeuvresAsync();
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("window.scrollTo", 0, 0);
+        }
+    }
+    public void ViewProfile(Artist a)
+    {
+        ArtistService.SetArtist(a);
+        NavigationManager.NavigateTo("/ConsulterArtist");
+
+    }
+    public void Consulter(Oeuvre o)
+    {
+        OeuvreService.SetOeuvre(o);
+        NavigationManager.NavigateTo("/ConsulterOeuvre");
+
+    }
+    public void GotoOeuvres()
+    {
+        NavigationManager.NavigateTo("/Oeuvres");
+    }
+    public void GotoArtists()
+    {
+        NavigationManager.NavigateTo("/Artists");
+    }
+}

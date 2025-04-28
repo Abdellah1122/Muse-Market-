@@ -1,0 +1,6 @@
+@FananeenAPI_HostAddress = http://localhost:5109
+
+GET {{FananeenAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

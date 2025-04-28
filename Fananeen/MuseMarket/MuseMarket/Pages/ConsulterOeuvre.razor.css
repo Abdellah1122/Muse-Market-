@@ -1,0 +1,56 @@
+﻿@media (max-width: 768px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+
+    p, span {
+        font-size: 1rem;
+    }
+
+    .container {
+        padding: var(--spacing-md);
+    }
+
+    .artwork-container {
+        flex-direction: column;
+    }
+
+    .artwork-details, .artwork-images {
+        width: 100%;
+    }
+
+    .image-carousel {
+        height: 300px;
+    }
+
+    .inputs {
+        flex-direction: column;
+        gap: 2em;
+
+    }
+
+    .Inputsss {
+        height: auto;
+    }
+
+    input {
+        width: 100%;
+    }
+
+    .TitrePrice, .C1 {
+        flex-direction: column;
+        gap:1em;
+        align-items: flex-start;
+        padding: 0;
+    }
+
+    .Villess button {
+        width: 100%;
+        height: auto;
+        padding: 0.5em 1em;
+    }
+}

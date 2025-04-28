@@ -1,0 +1,609 @@
+﻿@page "/Commisions"
+@using Microsoft.AspNetCore.Components.Forms
+@inject OeuvreService OeuvreService
+@inject ArtistService ArtistService
+@inject CategorieOeuvreService CategorieOeuvreService
+@inject SousCategorieOeuvreService SousCategorieOeuvreService
+@inject ArtFormService ArtFormService
+@inject VilleService VilleService
+@inject NavigationManager NavigationManager
+@inject ClientService ClientService
+@inject CommisionService CommisionService
+
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<style>
+    :root {
+        --primary-color: #254268;
+        --primary-dark: #1d3553;
+        --secondary-color: #5b8a78;
+        --secondary-light: #6c9a88;
+        --accent-color: #e8f0ed;
+        --danger-color: #d84040;
+        --danger-dark: #c53030;
+        --gold-accent: #d4c197;
+        --light-bg: #f7f7f7;
+        --card-bg: #ffffff;
+        --text-dark: #2c3e50;
+        --text-medium: #546e7a;
+        --text-light: #78909c;
+        --border-radius: 6px;
+        --box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Cormorant", serif;
+        transition: var(--transition);
+    }
+
+    body {
+        background-color: var(--light-bg);
+        min-height: 100vh;
+        overflow-x: hidden;
+        color: var(--text-dark);
+        line-height: 1.6;
+        background-image: linear-gradient(to right, rgba(91, 138, 120, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(91, 138, 120, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+    h2{
+        color:var(--text-dark);
+    }
+
+    h1 {
+        font-size: 2rem;
+        font-weight: 500;
+        color: var(--primary-color);
+        margin-bottom: 0.75rem;
+        letter-spacing: 0.5px;
+        position: relative;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+        font-weight: 500;
+        color: var(--primary-color);
+        margin-bottom: 0.75rem;
+        letter-spacing: 0.5px;
+        position: relative;
+    }
+
+    p {
+        font-size: 1.1em;
+        line-height: 1.8;
+        color: #555;
+        font-weight: 300;
+        margin-bottom: 1.5em;
+    }
+
+    button {
+        font-size: 0.9em;
+        font-weight: 400;
+        padding: 0.8em 2em;
+        border-radius: 2px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        letter-spacing: 0.5px;
+        transition: all 0.2s ease;
+    }
+
+    .BtnPrimary {
+        background-color: #2E5077;
+        color: #fff;
+    }
+
+        .BtnPrimary:hover {
+            background-color: #254268;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(46, 80, 119, 0.2);
+        }
+
+    .BtnSuc {
+        background-color: #6A9C89;
+        color: #fff;
+    }
+
+        .BtnSuc:hover {
+            background-color: #5b8a78;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(106, 156, 137, 0.2);
+        }
+
+    .BtnDanger {
+        background-color: #D84040;
+        color: #fff;
+    }
+
+        .BtnDanger:hover {
+            background-color: #c53030;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(216, 64, 64, 0.2);
+        }
+        /* Enhancing your existing styles with minimalist design */
+
+/* Main container */
+.m {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Shop section */
+.Shop {
+    margin-bottom: 3rem;
+}
+
+.Shop h2 {
+    
+    margin: 0 auto 2rem;
+    text-align: center;
+    font-size: 1.5rem;
+    line-height: 1.4;
+    color: var(--text-medium);
+    font-weight: 400;
+}
+
+/* Navigation section */
+.nav2 {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 2rem;
+}
+
+.Villess {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Cards grid layout */
+    .Cardss {
+        padding:0.5em;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Ensures exactly 3 cards per row */
+        gap: 2rem;
+    }
+
+    /* Individual card styling */
+    .card {
+        background-color: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        width:33em;
+    }
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+.card .content {
+    display: flex;
+    flex-direction: column;
+    gap:1em;
+    padding:1em;
+    height: 100%;
+}
+
+/* Commission header styling */
+.CommisionHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-medium);
+}
+
+/* Tags styling */
+.tags {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-grow: 1;
+}
+
+.tag {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.tags .tag:first-child {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.tags .tag:nth-child(2) {
+    color: var(--text-dark);
+    flex-grow: 1;
+}
+
+.tags .tag:nth-child(3) {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+.tags .tag:last-child {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Button positioning in card */
+.card .BtnPrimary {
+    align-self: flex-start;
+    margin-top: auto;
+}
+.Cardss h2 {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    color: var(--text-medium);
+}
+
+    .CommisionForm {
+        background-color: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 2rem;
+        margin: 2rem auto; /* Center the form */
+        width: 50em; 
+    }
+
+    .CommisionBody {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        align-items: center; /* Center the form elements */
+        width: 100%;
+    }
+
+        .CommisionBody input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 1rem;
+            color: var(--text-dark);
+            background-color: #fff;
+            transition: border-color 0.2s ease;
+            font-family: inherit;
+            text-align: center; /* Center text in inputs */
+        }
+
+            .CommisionBody input:focus {
+                outline: none;
+                border-color: var(--secondary-color);
+                box-shadow: 0 0 0 2px rgba(91, 138, 120, 0.1);
+            }
+
+            .CommisionBody input::placeholder {
+                color: var(--text-light);
+                opacity: 0.8;
+                text-align: center; /* Center placeholder text */
+            }
+
+            
+
+            
+
+        /* Style for the MudDatePicker */
+        .CommisionBody :global(.mud-input) {
+            width: 100%;
+            text-align: center;
+        }
+
+        .CommisionBody :global(.mud-input-label) {
+            color: var(--text-medium);
+            width: 100%;
+            text-align: center;
+        }
+
+        .CommisionBody :global(.mud-input-outlined-border) {
+            border-color: #e0e0e0;
+        }
+
+        .CommisionBody :global(.mud-input-outlined-border:hover) {
+            border-color: var(--secondary-color);
+        }
+
+    /* Button container */
+    .Btnsss {
+        display: flex;
+        gap: 1rem;
+        justify-content: center; /* Center the buttons */
+    }
+    .bod{
+        height:7em;
+
+    }
+
+    .img-container {
+        height: 260px;
+        overflow: hidden;
+        position: relative;
+    }
+
+        
+
+
+    .img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+
+    .backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+    }
+
+    .M2 {
+        background-color: #eee;
+        border-radius: 10px;
+        width: 30em; /* Reduced from 80em */
+        height: 20em; /* Reduced from 45em */
+        padding: 2em;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 1em;
+    }
+
+    .btns {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: 2em;
+    }
+</style>
+<Nav />
+<div class="m">
+
+    <div class="Shop">
+        <h2>Unveil extraordinary artists and their works—explore by city, art form, or name to find your next inspiration</h2>
+        <div class="nav2">
+            <div class="Villess">
+                <button class="BtnSuc" @onclick="Toggle">Add Commision</button>
+            </div>
+        </div>
+
+       
+            @if (IsClicked)
+            {
+                @if (client != null)
+                {
+                    <div class="CommisionForm">
+                        <div class="CommisionBody">
+							<h1>Add a commision</h1>
+
+                            <input class="sub" placeholder="Subject" @bind="SubjectInput"/>
+							<input class="bod" placeholder="Body" @bind="BodyInput"/>
+                            <MudDatePicker Required Style="--mud-palette-primary:var(--primary-color);" Label="Desired Return Date" @bind-Date="_date" />
+                            <MudFileUpload T="IBrowserFile" FilesChanged="UploadFile">
+                                <ActivatorContent>
+                                    <MudFab Class="minimalist-upload-button"
+                                            StartIcon="@Icons.Material.Filled.Image"
+                                            Label="Upload A referencial Image" />
+                                </ActivatorContent>
+                            </MudFileUpload>
+                            <MudMenu Label="Place under a sub category" MaxHeight="450" FullWidth="true">
+                                @if (Scats != null && Scats.Any())
+                                {
+                                    @foreach (var v in Scats)
+                                    {
+
+                                    <MudMenuItem OnClick="()=>ChoseScat(v)">@v.Categorie.Nom : @v.Nom</MudMenuItem>
+
+                                    }
+                                }
+
+                            </MudMenu>
+
+                        </div>
+                        <div class="Btnsss">
+                            <button class="BtnSuc" @onclick="Submit">Submit</button>
+                            <button class="BtnDanger" @onclick="Toggle">Cancel</button>
+                        </div>
+                </div>
+            }
+            else
+            {
+            }
+            }
+            else
+            {
+            <div class="Cardss">
+                @if (clients != null && clients.Any() && villes != null && villes.Any() && commisions != null && commisions.Any())
+                {
+                    @foreach (var o in commisions)
+                    {
+                        <div class="card">
+                            <div class="content">
+                               
+                                <div class="img-container">
+                                    <img src="https://localhost:7148/ImageCommision/@(o.imageCommision)" />
+                                </div>
+                                <div class="CommisionHeader">
+                                    <span class="tag">Posted By: <u>@o.Client.Nom @o.Client.Prenom</u></span>
+                                    <span class="tag">Posted The: <u>@o.PostedDate</u></span>
+                                </div>
+                                <div class="tags">
+                                    <span class="tag"><u>@o.Subject</u></span>
+                                    <span class="tag"> @o.body</span>
+                                    <span class="tag">Available In <b>@o.Client.ville.Nom</b></span>
+                                    <span class="tag">Excpected The: <u>@o.WantedReturnDate</u></span>
+                                </div>
+                                <button class="BtnPrimary">View in details</button>
+                            </div>
+                        </div>
+                    }
+
+                }
+                else
+                {
+                    <h2>No Commisions listed at the Moment</h2>
+                }
+            </div>
+            }
+
+        </div>
+    </div>
+
+
+
+
+<Footer />
+@if (ClientNull)
+{
+    <div class="backdrop"></div>
+    <div class="M2">
+        <div class="ModalMain">
+            <h2>Sign in or Create an account first to leave a review!</h2>
+            <div class="btns">
+                <button class="BtnSuc" @onclick="NavigateSignup">Sign In</button>
+                <button class="BtnDanger" @onclick="ToggleClientModal">Close</button>
+            </div>
+        </div>
+    </div>
+}
+@code {
+
+    List<ArtForm> artForms;
+    List<SousCategorieOeuvre>Scats;
+    SousCategorieOeuvre? ChosenScat;
+    List<Ville> villes;
+    List<Client> clients;
+    Client? client, client1;
+    List<Commision> commisions;
+
+    bool ClientNull = false;
+    public void ToggleClientModal()
+    {
+        ClientNull = !ClientNull;
+    }
+    public void NavigateSignup()
+    {
+        NavigationManager.NavigateTo("/SignUp");
+    }
+    IBrowserFile _file ;
+    private async Task UploadFile(IBrowserFile file)
+    {
+        _file = file;
+        await UploadImageAsync(_file);
+    }
+    private async Task UploadImageAsync(IBrowserFile filee)
+    {
+        var formData = new MultipartFormDataContent();
+        var fileContent = new StreamContent(filee.OpenReadStream(maxAllowedSize: 10_000_000)); // Set max file size as needed
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(filee.ContentType);
+
+        formData.Add(fileContent, "file", filee.Name);
+
+        var response = await Http.PostAsync("https://localhost:7148/api/FileUpload/upload-imageC", formData);
+
+    }
+
+
+    string BodyInput = string.Empty;
+    string SubjectInput = string.Empty;
+    private DateTime? _date = DateTime.Today;
+    bool IsClicked = false;
+
+
+    public async Task Toggle()
+    {
+        commisions = await CommisionService.GetCommisionsAsync();
+        if (client != null)
+        {
+            IsClicked = !IsClicked;
+        }
+        else
+        {
+            ToggleClientModal();
+        }
+        
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        clients = await ClientService.GetClientsAsync();
+        client1 = await ClientService.GetCurrentClient();
+        if (client1 != null)
+        {
+            client = clients.FirstOrDefault(c => c.Id == client1.Id);
+        }else
+        {
+            client = null;
+        }
+        commisions = await CommisionService.GetCommisionsAsync();
+        artForms = await ArtFormService.GetArtFormsAsync();
+        villes = await VilleService.GetVillesAsync();
+        Scats = await SousCategorieOeuvreService.GetSousCategoriesOeuvreAsync();
+
+    }
+    public void ChoseScat(SousCategorieOeuvre s)
+    {
+        ChosenScat = s;
+        Console.WriteLine(s.Nom);
+
+    }
+    public async Task Submit()
+    {
+        if(client!=null&&
+            ChosenScat!=null&&
+            SubjectInput!=string.Empty&&
+            BodyInput!=string.Empty
+        )
+        {
+            Commision commision = new Commision
+                {
+                    Client = client,
+                    PostedDate = DateTime.Now,
+                    WantedReturnDate = _date ?? DateTime.Now,
+                    SousCategorieOeuvre = ChosenScat,
+                    Subject = SubjectInput,
+                    IsDone = false,
+                    imageCommision = _file?.Name ?? "Default.JPG",
+                    body = BodyInput
+                };
+            await CommisionService.CreateCommisionAsync(commision);
+            await ClientService.IncrementNbrCommisionListedAsync(client.Id);
+            await clear();
+        }
+
+    }
+
+    public async Task clear()
+    {
+        SubjectInput = string.Empty;
+        BodyInput = string.Empty;
+        _date = DateTime.Now;
+        _file = null;
+        ChosenScat=null;
+        Snackbar.Add("salaaam", Severity.Success);
+        await Toggle();
+
+    }
+}

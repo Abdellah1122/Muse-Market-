@@ -1,0 +1,462 @@
+﻿@page "/SignUp"
+@inject ArtFormService ArtFormService
+@inject ArtistService ArtistService
+@inject VilleService VilleService
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject ClientService ClientService
+@using System.Text.RegularExpressions;
+@using Microsoft.AspNetCore.Components.Forms
+@inject ISnackbar Snackbar
+<style>
+    :root {
+        --primary-color: #254268;
+        --primary-dark: #1d3553;
+        --secondary-color: #5b8a78;
+        --secondary-light: #6c9a88;
+        --accent-color: #e8f0ed;
+        --danger-color: #d84040;
+        --danger-dark: #c53030;
+        --gold-accent: #d4c197;
+        --light-bg: #f7f7f7;
+        --card-bg: #ffffff;
+        --text-dark: #2c3e50;
+        --text-medium: #546e7a;
+        --text-light: #78909c;
+        --border-radius: 6px;
+        --box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Cormorant", serif;
+        transition: var(--transition);
+    }
+
+    body {
+        background-color: var(--light-bg);
+        min-height: 100vh;
+        overflow-x: hidden;
+        color: var(--text-dark);
+        line-height: 1.6;
+        background-image: linear-gradient(to right, rgba(91, 138, 120, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(91, 138, 120, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+
+    .minimalist-upload-button {
+        background-color: var(--secondary-color) !important;
+        color: white !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+        padding: 1em 2.2em !important;
+        transition: background-color 0.2s !important;
+    }
+
+        .minimalist-upload-button:hover {
+            background-color: var(--secondary-light) !important;
+        }
+</style>
+
+<Nav />
+
+<div class="m">
+        @if (LoginInModal)
+        {
+            <div class="LogIn">
+                <div class="form-header">
+                    <h1 class="form-title">Welcome Back</h1>
+                    <p class="form-subtitle">Sign in to your account</p>
+                </div>
+                <div class="form-body">
+                    <div class="input-group">
+                        <input type="text" @bind="Username" placeholder="Username" />
+                    </div>
+                    <div class="input-group">
+                        <input type="password" @bind="Password" placeholder="Password" />
+                    </div>
+                <MudRadioGroup @bind-Value="SelectedOption">
+                    <MudRadio Value="@("Client")" Color="Color.Primary">Client</MudRadio>
+                    <MudRadio Value="@("Artist")" Color="Color.Secondary">Artist</MudRadio>
+                </MudRadioGroup>
+                    <div class="form-actions">
+                        <button class="BtnPrimary" @onclick="Login">Log In</button>
+                        <button class="BtnSuc" @onclick="ToggleModals">Create Account</button>
+                    </div>
+                </div>
+                
+        </div>
+
+    }
+    else
+    {
+        <div class="SignUp">
+            <div class="form-header">
+                <h1 class="form-title">Create Account</h1>
+                <p class="form-subtitle">Join our artistic community</p>
+            </div>
+            <div class="SignUpp">
+                @if (SelectedOption == "Artist")
+                {
+                    <div class="Left">
+                        <div class="input-group">
+                            <input type="text" @bind="PrenomInput" placeholder="Last Name" />
+                        </div>
+                        <div class="input-group">
+                            <input type="text" @bind="NomInput" placeholder="First Name" />
+                        </div>
+                        <div class="input-group">
+                            <MudDatePicker Required Style="--mud-palette-primary:var(--primary-color);" Label="Date Of Birth" @bind-Date="_date" />
+                        </div>
+                        <div class="input-group">
+                            <input @bind="BioInput" type="text" placeholder="Bio" />
+                        </div>
+
+                    </div>
+                    <div class="Left">
+                        <div class="input-group">
+                            <input @bind="EmailInput" type="email" placeholder="Email Address" />
+                        </div>
+                        <div class="input-group">
+                            <input @bind="PhoneInput" type="tel" placeholder="Phone Number" />
+                        </div>
+
+                        <div class="input-group">
+                            <input @bind="UseNameInput" type="text" placeholder="UserName" />
+                        </div>
+                        <div class="input-group">
+                            <input @bind="PassWordInput" type="password" placeholder="PassWord" />
+                        </div>
+                    </div>
+                    <div class="center">
+                        <div class="input-group">
+                            <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+                                <ActivatorContent>
+                                    <MudFab Class="minimalist-upload-button"
+                                            StartIcon="@Icons.Material.Filled.Image"
+                                            Label="Profile Picture" />
+                                </ActivatorContent>
+                            </MudFileUpload>
+                        </div>
+                        <div class="Villess">
+                            <MudMenu Label="Chose Your City" MaxHeight="450" FullWidth="true">
+                                @if (villes != null && villes.Any())
+                                {
+                                    @foreach (var v in villes)
+                                    {
+                                        <MudMenuItem @onclick="()=>SelectVille(v.Id)">@v.Nom</MudMenuItem>
+                                    }
+                                }
+
+                            </MudMenu>
+                        </div>
+                    </div>
+                    <div class="Right">
+                        <h2>Chose an Art Form</h2>
+                        <div class="Artformss">
+                            @if (artForms != null && artForms.Any())
+                            {
+                                foreach (var a in artForms)
+                                {
+                                    <button class="ArtFormBTN" @onclick="()=>SelectForm(a.Id)">@a.Nom</button>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="Left">
+                        <div class="input-group">
+                            <input type="text" @bind="PrenomInput" placeholder="Last Name" />
+                        </div>
+                        <div class="input-group">
+                            <input type="text" @bind="NomInput" placeholder="First Name" />
+                        </div>
+                        <div class="input-group">
+                            <input @bind="EmailInput" type="email" placeholder="Email Address" />
+                        </div>
+                        <div class="input-group">
+                            <input @bind="PhoneInput" type="tel" placeholder="Phone Number" />
+                        </div>
+                    </div>
+                    <div class="Left">
+                        <div class="input-group">
+                            <input  type="text" @bind="Address" placeholder="Address" />
+                        </div>
+                        <div class="input-group">
+                            <input @bind="PostCode" type="text" placeholder="PostCode" />
+                        </div>
+                        <div class="Villess">
+                            <MudMenu Label="Chose Your City" MaxHeight="450" FullWidth="true">
+                                @if (villes != null && villes.Any())
+                                {
+                                    @foreach (var v in villes)
+                                    {
+                                        <MudMenuItem @onclick="()=>SelectVille(v.Id)">@v.Nom</MudMenuItem>
+                                    }
+                                }
+
+                            </MudMenu>
+                        </div>
+
+                    </div>
+                    <div class="Left">
+                        <div class="input-group">
+                            <input @bind="UseNameInput" type="text" placeholder="UserName" />
+                        </div>
+                        <div class="input-group">
+                            <input @bind="PassWordInput" type="password" placeholder="PassWord" />
+                        </div>
+                        
+                    </div>
+                }
+
+
+                
+                
+
+                </div>
+                <div class="form-footer">
+                    <div class="form-actions">
+                    <MudRadioGroup @bind-Value="SelectedOption">
+                        <MudRadio Value="@("Client")" Color="Color.Primary">Client</MudRadio>
+                        <MudRadio Value="@("Artist")" Color="Color.Secondary">Artist</MudRadio>
+                    </MudRadioGroup>
+                    <button class="BtnPrimary" style="width:35em;" @onclick="Signupp"> Sign Up</button>
+                    </div>
+                    <p class="toggle-form">Already have an account? <a class="toggle-link" @onclick="ToggleModals">Log in</a></p>
+                </div>
+            </div>
+        }
+</div>
+
+<Footer />
+
+@code {
+    List<Ville> villes;
+    List<ArtForm> artForms;
+    List<Artist> artists;
+    ArtForm SelectedArtForm;
+    Ville SelectedVille;
+    //
+    private DateTime? _date = DateTime.Today;
+    public string SelectedOption { get; set; }
+    //
+    public bool SignUpModal = false;
+    public bool LoginInModal = true;
+    //
+    public string NomInput = string.Empty;
+    public string PrenomInput = string.Empty;
+    public string Address = string.Empty;
+    public string PostCode = string.Empty;
+    public string BioInput = string.Empty;
+    public string EmailInput = string.Empty;
+    public string PhoneInput = string.Empty;
+    public string UseNameInput = string.Empty;
+    public string PassWordInput = string.Empty;
+    //
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    //
+
+    IBrowserFile _file;
+    private async Task UploadFiles(IBrowserFile file)
+    {
+        _file = file;
+        await UploadImageAsync();
+    }
+    private async Task UploadImageAsync()
+    {
+        var formData = new MultipartFormDataContent();
+        var fileContent = new StreamContent(_file.OpenReadStream(maxAllowedSize: 10_000_000)); // Set max file size as needed
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(_file.ContentType);
+
+        formData.Add(fileContent, "file", _file.Name);
+
+        var response = await Http.PostAsync("https://localhost:7148/api/FileUpload/upload-imageA", formData);
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        artForms = await ArtFormService.GetArtFormsAsync();
+        artists = await ArtistService.GetArtistsAsync();
+        villes = await VilleService.GetVillesAsync();
+    }
+
+    public void ToggleModals()
+    {
+        SignUpModal = !SignUpModal;
+        LoginInModal = !LoginInModal;
+    }
+
+    public async Task SelectForm(int id)
+    {
+
+        SelectedArtForm = await ArtFormService.GetArtFormByIdAsync(id);
+        Console.WriteLine(SelectedArtForm.Nom);
+    }
+    public async Task SelectVille(int id)
+    {
+
+        SelectedVille = await VilleService.GetVilleByIdAsync(id);
+        Console.WriteLine(SelectedVille.Nom);
+    }
+
+    public async Task Login()
+    {
+        if (SelectedOption == "Artist")
+        {
+            var result = await ArtistService.LoginAsync(Username, Password);
+            if (result == "Login successful")
+            {
+                Console.WriteLine("succ");
+                NavigationManager.NavigateTo("/ArtistPanel");
+            }
+            else
+            {
+                Snackbar.Add("Login Failed! ", Severity.Error);
+            }
+        }
+        else
+        {
+            var result = await ClientService.LoginAsync(Username, Password);
+            if (result == "Login successful")
+            {
+                Console.WriteLine("succ");
+                NavigationManager.NavigateTo("/ClientPanel");
+            }
+            else
+            {
+                Snackbar.Add("Login Failed! ", Severity.Error);
+            }
+        }
+        
+    }
+
+    public async Task Signupp()
+    {
+        if (SelectedOption == "Artist")
+        {
+            if (SelectedArtForm == null ||
+             SelectedVille == null ||
+             string.IsNullOrWhiteSpace(NomInput) ||
+             string.IsNullOrWhiteSpace(PrenomInput) ||
+             string.IsNullOrWhiteSpace(BioInput) ||
+             string.IsNullOrWhiteSpace(EmailInput) ||
+             string.IsNullOrWhiteSpace(PhoneInput) ||
+             string.IsNullOrWhiteSpace(UseNameInput) ||
+             string.IsNullOrWhiteSpace(PassWordInput) ||
+             _file == null)
+            {
+                Snackbar.Add("Please fill all the fields first", Severity.Error);
+                return;
+            }
+
+            string emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            if (!Regex.IsMatch(EmailInput, emailPattern))
+            {
+                Snackbar.Add("Invalid email format", Severity.Error);
+                return;
+            }
+
+            if (PassWordInput.Length < 8)
+            {
+                Snackbar.Add("Password must be at least 8 characters long", Severity.Error);
+                return;
+            }
+
+            // Phone number validation (Moroccan format +212 000000000)
+            string phonePattern = @"^\+212\s\d{9}$";
+            if (!Regex.IsMatch(PhoneInput, phonePattern))
+            {
+                Snackbar.Add("Phone number must follow the pattern +212 000000000", Severity.Error);
+                return;
+            }
+
+            Artist a = new Artist
+                {
+                    ville = SelectedVille,
+                    artForm = SelectedArtForm,
+                    Nom = NomInput,
+                    Prenom = PrenomInput,
+                    Bio = BioInput,
+                    Email = EmailInput,
+                    Telephone = PhoneInput,
+                    IsAvailable = true,
+                    ImageArtist = _file.Name,
+                    NbrFoisVisite = 0,
+                    NbrOeuvreVendu = 0,
+                    Rating = 0,
+                    UserName = UseNameInput,
+                    PassWord = PassWordInput,
+                    DatedeNaissance = _date ?? DateTime.Now
+                };
+
+            await ArtistService.CreateArtistAsync(a);
+            Console.WriteLine("Success hh");
+            Snackbar.Add("Artist Account created successfully", Severity.Success);
+            ToggleModals();
+            Clear();
+        }
+        else
+        {
+            if ( SelectedVille == null ||
+            string.IsNullOrWhiteSpace(NomInput) ||
+            string.IsNullOrWhiteSpace(PrenomInput) ||
+            string.IsNullOrWhiteSpace(Address) ||
+            string.IsNullOrWhiteSpace(EmailInput) ||
+            string.IsNullOrWhiteSpace(PhoneInput) ||
+            string.IsNullOrWhiteSpace(UseNameInput) ||
+            string.IsNullOrWhiteSpace(PassWordInput) ||
+            string.IsNullOrWhiteSpace(PostCode)
+            )
+            {
+                Snackbar.Add("Please fill all the fields first", Severity.Error);
+                return;
+            }
+            else
+            {
+                Client c = new Client
+                    {
+                        Nom = NomInput,
+                        Prenom = PrenomInput,
+                        Addres = Address,
+                        Email = EmailInput,
+                        UserName = UseNameInput,
+                        Password = PassWordInput,
+                        Postcode = int.Parse(PostCode),
+                        Telephone = PhoneInput,
+                        ville = SelectedVille
+                    };
+                await ClientService.AddClientAsync(c);
+                Console.WriteLine("Success hh");
+                Snackbar.Add("Artist Account created successfully", Severity.Success);
+                ToggleModals();
+                Clear();
+            }
+
+        }
+
+    }
+
+    public void Clear()
+    {
+        NomInput = string.Empty;
+        PrenomInput = string.Empty;
+        Address = string.Empty;
+        PostCode = string.Empty;
+        BioInput = string.Empty;
+        EmailInput = string.Empty;
+        PhoneInput = string.Empty;
+        UseNameInput = string.Empty;
+        PassWordInput = string.Empty;
+        SelectedVille = null;
+    }
+
+    
+
+}

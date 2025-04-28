@@ -1,0 +1,47 @@
+﻿.NV {
+    padding: 1em;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    color: #16423C;
+    gap: 0em;
+    border-bottom: 2px solid #16423C;
+}
+
+.NavBtn {
+    color: #16423C;
+    font-size: 2.2em;
+    letter-spacing: 2px;
+    font-family: "Marck Script", cursive;
+    font-weight: 400;
+    font-style: normal;
+    margin: 0;
+    padding: 0;
+}
+
+.NavBtn1 {
+    color: #16423C;
+    font-size: 1.6em;
+    letter-spacing: 2px;
+    font-weight: 400;
+    font-style: normal;
+    margin: 0;
+    padding: 0;
+}
+.NavBtn:hover, .NavBtn1:hover {
+    border-bottom: 1px solid #16423C;
+}
+
+.btnsss {
+    display: flex;
+    gap: 2em;
+}
+@media (max-width: 768px) {
+    .btnsss{
+        flex-direction:column;
+    }
+    .NV{
+        flex-direction:column;
+        gap:2em;
+    }
+}

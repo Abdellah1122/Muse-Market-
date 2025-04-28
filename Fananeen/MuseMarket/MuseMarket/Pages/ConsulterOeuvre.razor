@@ -1,0 +1,575 @@
+﻿@page "/ConsulterOeuvre"
+
+@inject OeuvreService OeuvreService
+@inject ArtistService ArtistService
+@inject CategorieOeuvreService CategorieOeuvreService
+@inject SousCategorieOeuvreService SousCategorieOeuvreService
+@inject ArtFormService ArtFormService
+@inject VilleService VilleService
+@inject NavigationManager NavigationManager
+@inject ClientService ClientService
+@inject VenteService VenteService
+@inject ISnackbar Snackbar
+<style>
+    :root {
+        --primary-color: #254268;
+        --primary-dark: #1d3553;
+        --secondary-color: #5b8a78;
+        --secondary-light: #6c9a88;
+        --accent-color: #e8f0ed;
+        --gold-accent: #d4c197;
+        --light-bg: #f7f7f7;
+        --danger-color: #d84040;
+        --danger-dark: #c53030;
+        --card-bg: #ffffff;
+        --text-dark: #2c3e50;
+        --text-medium: #546e7a;
+        --text-light: #78909c;
+        --border-radius: 6px;
+        --box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
+        --spacing-sm: 0.875rem;
+        --spacing-md: 1.75rem;
+        --spacing-lg: 2.5rem;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Cormorant", serif;
+    }
+
+    body {
+        background-color: var(--light-bg);
+        color: var(--text-dark);
+        line-height: 1.6;
+        background-image: linear-gradient(to right, rgba(91, 138, 120, 0.03) 1px, transparent 1px),
+                          linear-gradient(to bottom, rgba(91, 138, 120, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+
+    h1 {
+        font-size: 2.2rem;
+        font-weight: 500;
+        color: var(--primary-color);
+        margin-bottom: var(--spacing-md);
+        letter-spacing: 0.5px;
+        position: relative;
+        padding-bottom: 15px;
+    }
+
+    h1::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 70px;
+        height: 2px;
+        background: linear-gradient(to right, var(--secondary-color), var(--secondary-light));
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: var(--primary-color);
+        margin-bottom: var(--spacing-sm);
+        letter-spacing: 0.5px;
+    }
+
+    p, span {
+        font-size: 1.05rem;
+        color: var(--text-medium);
+        margin-bottom: var(--spacing-md);
+        line-height: 1.7;
+    }
+
+    button {
+        font-size: 0.95rem;
+        font-weight: 500;
+        padding: 0.85rem 2rem;
+        border-radius: var(--border-radius);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: var(--transition);
+        letter-spacing: 0.5px;
+        margin-top: var(--spacing-md);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .BtnPrimary {
+        background-color: var(--primary-color);
+        color: white;
+        border: 1px solid var(--primary-color);
+    }
+
+    .BtnPrimary:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .BtnDanger {
+        background-color: var(--danger-color);
+        margin-top:-1em;
+        padding:0.2em 2em;
+        color: white;
+        border: 1px solid var(--danger-color);
+    }
+
+        .BtnPrimary:hover {
+            background-color: var(--danger-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+    .BtnSuc {
+        background-color: var(--secondary-color);
+        color: white;
+        border: 1px solid var(--secondary-color);
+    }
+
+    .BtnSuc:hover {
+        background-color: var(--secondary-light);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: var(--spacing-lg) var(--spacing-md);
+    }
+
+    .artwork-container {
+        display: flex;
+        gap: var(--spacing-lg);
+        align-items: flex-start;
+    }
+
+    .artwork-details {
+        flex: 1;
+        background-color: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: var(--spacing-lg);
+        border: 1px solid rgba(91, 138, 120, 0.1);
+        position: relative;
+    }
+
+    .artwork-details::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(to bottom, var(--primary-color) 30%, var(--secondary-color) 100%);
+        border-top-left-radius: var(--border-radius);
+        border-bottom-left-radius: var(--border-radius);
+    }
+
+    .artwork-images {
+        flex: 1.5;
+    }
+
+    .info-section {
+        margin-bottom: var(--spacing-lg);
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 1px solid rgba(91, 138, 120, 0.1);
+    }
+
+    .info-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .info-section h2 {
+        font-size: 1.3rem;
+        color: var(--primary-color);
+        padding-bottom: var(--spacing-sm);
+        margin-bottom: var(--spacing-md);
+        position: relative;
+        display: inline-block;
+    }
+
+    .info-section h2::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background-color: var(--secondary-color);
+        opacity: 0.3;
+    }
+
+    .info-section .tag {
+        display: block;
+        margin-bottom: 0.75rem;
+        color: var(--text-medium);
+        font-size: 1.05rem;
+        position: relative;
+        padding-left: 18px;
+    }
+
+    .info-section .tag::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 6px;
+        height: 6px;
+        background-color: var(--secondary-color);
+        border-radius: 50%;
+        opacity: 0.7;
+    }
+
+    .image-carousel {
+        width: 100%;
+        height: 450px;
+        overflow: hidden;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        margin-bottom: var(--spacing-md);
+        border: 1px solid rgba(91, 138, 120, 0.1);
+        position: relative;
+    }
+
+    .image-carousel::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: calc(var(--border-radius) - 1px);
+        pointer-events: none;
+    }
+
+    .mud-carousel {
+        width: 100% !important;
+        height: 100%;
+        border-radius: var(--border-radius);
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+
+    img:hover {
+        transform: scale(1.02);
+    }
+
+    .image-caption {
+        background-color: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: var(--spacing-md);
+        box-shadow: var(--box-shadow);
+        border: 1px solid rgba(91, 138, 120, 0.1);
+        position: relative;
+    }
+
+    .image-caption h2 {
+        color: var(--primary-color);
+        margin-bottom: 15px;
+        position: relative;
+        display: inline-block;
+        padding-bottom: 8px;
+    }
+
+    
+
+    .loading {
+        text-align: center;
+        padding: var(--spacing-lg);
+    }
+
+    .loading h2 {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        position: relative;
+        display: inline-block;
+        padding-bottom: 10px;
+    }
+
+    .loading h2::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 25%;
+        width: 50%;
+        height: 2px;
+        background: linear-gradient(to right, transparent, var(--secondary-color), transparent);
+    }
+
+    .TitrePrice{
+        display:flex;
+        flex-direction:row;
+        padding:0em 2em;
+        justify-content:space-between
+    }
+    .C1{
+        display:flex;
+        flex-direction:row;
+        justify-content:space-between
+    }
+    
+    .inputs{
+        display:flex;
+        flex-direction:row;
+        justify-content:center;
+        align-items:center;
+        gap:4em;
+        height: 100%;
+        
+    }
+
+    .Inputsss{
+        display:flex;
+        flex-direction:column;
+        gap:2em;
+        height:30em;
+        padding:1em;
+    }
+    .Left{
+        display:flex;
+        flex-direction:column;
+        gap:1em;
+    }
+
+     input {
+        width: 16em;
+        padding: 8px 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: var(--border-radius);
+        background-color: #fff;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        box-sizing: border-box;
+    }
+
+         input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(213, 180, 149, 0.1);
+        }
+
+         input::placeholder {
+            color: #aaa;
+            font-weight: 300;
+            font-size: 0.9rem;
+        }
+
+    .Villess button {
+        background-color: transparent;
+        box-shadow: 0 0 0 3px rgba(213, 180, 149, 0);
+        padding:0em 1em;
+        width:100%;
+        height:4em
+    }
+    </style>
+
+<Nav />
+
+<div class="container">
+    @if (oeuvres != null && oeuvres.Any() && artists != null && artists.Any())
+    {
+        
+        <div class="artwork-container">
+            <div class="artwork-images">
+                <div class="image-carousel">
+                    <MudCarousel Class="mud-width-full" ShowArrows="@arrows" ShowBullets="@bullets" AutoCycle="@autocycle" TData="object">
+                        <MudCarouselItem Transition="transition">
+                            <img src="https://localhost:7148/ImagesOeuvre/@oeuvre.ImageOeuvre1" alt="@oeuvre.Titre" />
+                        </MudCarouselItem>
+                        <MudCarouselItem Transition="transition">
+                            <img src="https://localhost:7148/ImagesOeuvre/@oeuvre.ImageOeuvre2" alt="@oeuvre.Titre" />
+                        </MudCarouselItem>
+                        <MudCarouselItem Transition="transition">
+                            <img src="https://localhost:7148/ImagesOeuvre/@oeuvre.ImageOeuvre3" alt="@oeuvre.Titre" />
+                        </MudCarouselItem>
+                    </MudCarousel>
+                </div>
+
+                <div class="image-caption">
+                    <div class="TitrePrice">
+                        <h1>@oeuvre.Titre</h1>
+                        <h2>Price : @oeuvre.Prix DH</h2>
+                    </div>
+                    <p>@oeuvre.Description</p>
+                </div>
+            </div>
+            <div class="artwork-details">
+
+                @if (!IsClicked)
+                {
+                        <div class="info-section">
+                            <h2>Details</h2>
+                            <span class="tag">Created: @oeuvre.DateDeCreation</span>
+                            <span class="tag">Category: @oeuvre.Scategorie.Categorie.Nom</span>
+                            <span class="tag">Subcategory: @oeuvre.Scategorie.Nom</span>
+                        @if (oeuvre.Statut==StatutOeuvre.ForSale)
+                        {
+                            <button class="BtnSuc" @onclick="Clicked">Shop Now !</button>
+                        }
+                        
+                        </div>
+                    <div class="info-section">
+                        <h2>Artist</h2>
+                        <span class="tag">Made by :@oeuvre.Artist.Prenom @oeuvre.Artist.Nom</span>
+                        <span class="tag">Available In : @oeuvre.Artist.ville.Nom</span>
+                        <span class="tag">Email : @oeuvre.Artist.Email</span>
+                        <span class="tag">Telephone : @oeuvre.Artist.Telephone</span>
+                        <button class="BtnPrimary" @onclick="()=>ViewProfile(oeuvre.Artist)">View Artist's Profile</button>
+                    </div>
+                }
+                else
+                {
+                   
+                    <div class="Inputsss">
+                        <div class="C1">
+                            <h2>Buy : @oeuvre.Titre</h2>
+                            <button class="BtnDanger" @onclick="Unclicked">Return</button>
+                        </div>
+                         <div class="inputs">
+                                 <div class="Left">
+                                     <input @bind="FirtName" placeholder="First name"/>
+                                    <input @bind="LastName" placeholder="Last name" />
+                                    <input @bind="Email" placeholder="Email" />
+                                    <input @bind="PhoneNumber" placeholder="Phone Number" />
+                                 </div>
+                                <div class="Left">
+                                    <div class="Villess">
+                                        <MudMenu Label="Chose a City" MaxHeight="450" FullWidth="true">
+                                            @if (villes != null && villes.Any())
+                                            {
+                                                @foreach (var v in villes)
+                                                {
+                                                    <MudMenuItem OnClick="()=>ChoseVille(v)">@v.Nom</MudMenuItem>
+                                                }
+                                            }
+
+                                        </MudMenu>
+                                    </div>
+                                    <input @bind="Address" placeholder="Address" />
+                                    <input @bind="PostCode" placeholder="PostCode" />
+                                </div>
+                         </div>
+                        <button class="BtnSuc" @onclick="CreateClient">Confirm</button>
+                    </div>
+                        
+                    
+                }
+                
+                
+                
+            </div>
+            
+            
+        </div>
+    }
+    else
+    {
+        <div class="loading">
+            <h2>Loading artwork...</h2>
+        </div>
+    }
+</div>
+
+<Footer />
+
+@code {
+    List<Artist> artists;
+    List<Oeuvre> oeuvres;
+    List<ArtForm> artForms;
+    List<Ville> villes;
+    Oeuvre oeuvre;
+    //
+    public string FirtName = string.Empty;
+    public string LastName = string.Empty;
+    public string Email = string.Empty;
+    public string PhoneNumber = string.Empty;
+    public string Address = string.Empty;
+    public string PostCode = string.Empty;
+    public Ville? selectedVille;
+    //
+    bool IsClicked = false;
+    bool clientLoggedin = true;
+
+    public async Task CreateClient()
+    {
+        if (LastName == string.Empty || FirtName == string.Empty || Email == string.Empty || PhoneNumber == string.Empty || Address == string.Empty || PostCode == string.Empty ||selectedVille==null)
+        {
+            Snackbar.Add("Provide A valid First Name", Severity.Error);
+        }
+        else
+        {
+            Client client = new Client
+                {
+                    Nom = LastName,
+                    Prenom = FirtName,
+                    Email = Email,
+                    Telephone = PhoneNumber,
+                    Addres = Address,
+                    Postcode = int.Parse(PostCode),
+                    ville = selectedVille
+
+                };
+            Client createdClient = await ClientService.AddClientAsync(client);
+
+            Vente vente = new Vente
+                {
+                    Client = createdClient,
+                    Oeuvre = oeuvre,
+                    VenteDate = DateTime.Now
+                };
+            await VenteService.CreateVenteAsync(vente);
+            await OeuvreService.ToggleAvailabilityAsync(oeuvre.Id, StatutOeuvre.NotForSale);
+            Snackbar.Add("Your purchase has been noted successfully. You will hear from us soon via email and phone for confirmation.", Severity.Success);
+            NavigationManager.NavigateTo("/Oeuvres");
+            Console.WriteLine("success");
+        }
+
+    }
+
+    public void Clicked()
+    {
+        IsClicked = true;
+    }
+    public void Unclicked()
+    {
+        IsClicked = false;
+    }
+    public void ChoseVille(Ville ville)
+    {
+        selectedVille = ville;
+        Console.WriteLine(selectedVille.Nom);
+    }
+    private bool arrows = true;
+    private bool bullets = true;
+    private bool autocycle = true;
+    private Transition transition = Transition.Fade;
+
+    protected override async Task OnInitializedAsync()
+    {
+        artForms = await ArtFormService.GetArtFormsAsync();
+        artists = await ArtistService.GetArtistsAsync();
+        oeuvres = await OeuvreService.GetOeuvresAsync();
+        villes = await VilleService.GetVillesAsync();
+        oeuvre = await OeuvreService.GetOeuvre(); 
+        
+    }
+    public void ViewProfile(Artist a)
+    {
+        ArtistService.SetArtist(a);
+        NavigationManager.NavigateTo("/ConsulterArtist");
+
+    }
+}

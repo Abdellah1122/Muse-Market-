@@ -1,0 +1,1066 @@
+﻿@page "/ClientPanel"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Text.Json
+@inject OeuvreService OeuvreService
+@inject ArtistService ArtistService
+@inject ArtFormService ArtFormService
+@inject CategorieOeuvreService CategorieOeuvreService
+@inject SousCategorieOeuvreService SousCategorieOeuvreService
+@inject VilleService VilleService
+@inject ISnackbar Snackbar
+@inject CommentaireService CommentaireService
+@inject HttpClient Http
+@inject ClientService ClientService
+@inject CommisionService CommisionService
+@inject NavigationManager NavigationManager
+
+<style>
+    :root {
+        --primary-color: #254268;
+        --primary-dark: #1d3553;
+        --secondary-color: #5b8a78;
+        --secondary-light: #6c9a88;
+        --accent-color: #e8f0ed;
+        --danger-color: #d84040;
+        --danger-dark: #c53030;
+        --gold-accent: #d4c197;
+        --light-bg: #f7f7f7;
+        --card-bg: #ffffff;
+        --text-dark: #2c3e50;
+        --text-medium: #546e7a;
+        --text-light: #78909c;
+        --border-radius: 6px;
+        --box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Cormorant", serif;
+        transition: var(--transition);
+    }
+
+    body {
+        background-color: var(--light-bg);
+        min-height: 100vh;
+        overflow-x: hidden;
+        color: var(--text-dark);
+        line-height: 1.6;
+        background-image: linear-gradient(to right, rgba(91, 138, 120, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(91, 138, 120, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+
+    .Villess button {
+        background-color: var(--accent-color);
+        padding: 0.5em 2em;
+    }
+
+    .BtnD {
+        background-color: var(--danger-color) !important;
+        color: white !important;
+        border: 1px solid var(--danger-color) !important;
+    }
+
+        .BtnD:hover {
+            background-color: var(--danger-dark) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
+        }
+
+    h1 {
+        font-size: 2rem;
+        font-weight: 500;
+        color: var(--primary-color);
+        margin-bottom: 0.75rem;
+        letter-spacing: 0.5px;
+        position: relative;
+    }
+
+    h2 {
+        font-size: 1.6rem;
+        font-weight: 500;
+        color: var(--primary-color);
+        border-bottom: none;
+        width: 100%;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+        letter-spacing: 0.5px;
+        position: relative;
+        display: inline-block;
+    }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(to right, var(--secondary-color), var(--secondary-light));
+        }
+
+    p {
+        font-size: 1.2rem;
+        line-height: 1.7;
+        color: var(--text-medium);
+        margin-bottom: 1rem;
+    }
+
+    button {
+        font-size: 0.95rem;
+        font-weight: 500;
+        padding: 0.5rem 1.8rem;
+        border-radius: var(--border-radius);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: var(--transition);
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .BtnPrimary {
+        background-color: var(--primary-color);
+        color: white;
+        border: 1px solid var(--primary-color);
+    }
+
+        .BtnPrimary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+    .BtnSuc {
+        background-color: var(--secondary-color);
+        color: white;
+        border: 1px solid var(--secondary-color);
+    }
+
+        .BtnSuc:hover {
+            background-color: var(--secondary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+    .BtnDanger {
+        background-color: var(--danger-color);
+        color: white;
+        border: 1px solid var(--danger-color);
+    }
+
+        .BtnDanger:hover {
+            background-color: var(--danger-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+    .m {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 0 30px;
+        display: flex;
+        flex-direction: row;
+        gap: 2em;
+        padding: 2em 1em;
+    }
+
+    .Left, .Right {
+        padding: 1em;
+    }
+
+    .Left {
+        width: 30%;
+        display: flex;
+        flex-direction: column;
+        gap: 2em;
+        align-items: center;
+    }
+
+    .Right {
+        width: 80%;
+    }
+
+    .Statss {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+        .Statss p {
+            background-color: #eee;
+            width: 13em;
+            padding: 1em;
+            border-radius: 4px;
+            font-size: 1.3em;
+        }
+
+    .card {
+        background-color: var(--card);
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        position: relative;
+        flex: 1 1 calc(33.33% - 1em);
+        display: flex;
+        flex-direction: column;
+        margin-top: 0.5em;
+    }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.07);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary);
+            transition: width 0.4s ease;
+        }
+
+        .card:hover::after {
+            width: 100%;
+        }
+
+    .img-container {
+        height: 260px;
+        overflow: hidden;
+        position: relative;
+    }
+
+        .img-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(37, 66, 104, 0) 70%, rgba(37, 66, 104, 0.1) 100%);
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+
+
+    .content {
+        padding: 25px;
+    }
+
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 0.5em;
+        margin-bottom: 15px;
+    }
+
+    .tag {
+        background-color: rgba(91, 138, 120, 0.08);
+        color: var(--primary-dark);
+        padding: 5px 10px;
+        border-radius: 2px;
+        font-size: 13px;
+        font-weight: 400;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+        .tag:hover {
+            background-color: rgba(91, 138, 120, 0.15);
+        }
+
+        .tag u {
+            text-decoration: none;
+            color: var(--secondary);
+            font-weight: 500;
+        }
+
+    .content p {
+        margin: 15px 0;
+        font-size: 15px;
+        color: var(--text-light);
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .Cardss {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1em;
+    }
+
+    .Infos {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .Info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1em;
+        padding: 8px 10px;
+        border-bottom: 1px solid #f0f0f0;
+        background-color: var(--light-bg);
+        border-radius: 4px;
+    }
+
+        .Info:last-child {
+            border-bottom: none;
+        }
+
+        .Info p {
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .Info button {
+            background-color: var(--primary-color);
+            color: white;
+            border: 1px solid #e0e0e0;
+            padding: 0.75em 1.25em;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+            .Info button:hover {
+                background-color: var(--primary-dark);
+            }
+
+    .headerrr {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 0em 2em;
+    }
+
+    .backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+    }
+
+    .M2 {
+        background-color: #eee;
+        border-radius: 10px;
+        width: 90em; /* Reduced from 80em */
+        height: 47em; /* Reduced from 45em */
+        padding: 2em;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 1em;
+    }
+    /* Individual card styling */
+    .card {
+        background-color: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        width: 35em;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .card .content {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+    /* Commission header styling */
+    .CommisionHeader {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: var(--text-medium);
+    }
+
+    /* Tags styling */
+    .tags {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+    }
+
+    .tag {
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    .tags .tag:first-child {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .tags .tag:nth-child(2) {
+        color: var(--text-dark);
+        flex-grow: 1;
+    }
+
+    .tags .tag:nth-child(3) {
+        color: var(--secondary-color);
+        font-size: 0.9rem;
+    }
+
+    .tags .tag:last-child {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    /* Button positioning in card */
+    .card .BtnPrimary {
+        align-self: flex-start;
+        margin-top: auto;
+    }
+
+    .Cardss h2 {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 3rem;
+        background-color: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        color: var(--text-medium);
+    }
+    .c1 {
+        display: flex;
+        padding: 0.5em 2em;
+        justify-content: space-between
+    }
+
+    .AddOeuvreForm {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+        gap: 1em;
+    }
+
+    .Rightt {
+        margin-top: -3em;
+        display: flex;
+        flex-direction: column;
+        gap: 0em;
+        align-items: center;
+        width: 35%
+    }
+
+    
+
+    .Villess button {
+        background-color:#eee;
+        color:var(--text-dark);
+    }
+
+    .Villess button:hover {
+            background-color: var(--text-dark) ;
+            color: #eee;
+    }
+
+    .input-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    input {
+        width: 24em;
+        padding: 9px 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: var(--border-radius);
+        background-color: #fff;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        box-sizing: border-box;
+    }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(213, 180, 149, 0.1);
+        }
+
+        input::placeholder {
+            color: #aaa;
+            font-weight: 300;
+            font-size: 0.9rem;
+        }
+</style>
+<Nav />
+@if (client != null)
+{
+    <div class="m">
+        <div class="Left">
+            <h1>Modify Your Informations</h1>
+            <div class="Infos">
+                @if (IsPrenomClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewPrenom" placeholder="Enter Your New First Name" />
+                        <button class="BtnSuc" @onclick="ChangePrenom">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>First Name : </b> @client.Prenom</p>
+                        <button @onclick="showprenom"> <i class="bi bi-vector-pen"></i></button>
+                    </div>
+                }
+
+                @if (IsnomClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewNom" placeholder="Enter Your New Last Name" />
+                        <button class="BtnSuc" @onclick="ChnageNom">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>Last Name : </b>  @client.Nom</p>
+                        <button @onclick="ShowNom"> <i class="bi bi-vector-pen"></i></button>
+                    </div>
+                }
+                @if (IsPhoneClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewPhone" placeholder="Enter Your New Phone Number" />
+                        <button class="BtnSuc" @onclick="ChnagePhoneNumber">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>Phone Number : </b> @client.Telephone</p>
+                        <button @onclick="ShowNumber"> <i class="bi bi-vector-pen"></i> </button>
+                    </div>
+                }
+                @if (IsEmailClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewEmail" placeholder="Enter Your New Email" />
+                        <button class="BtnSuc" @onclick="ChangeEmail">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>Email : </b> @client.Email</p>
+                        <button @onclick="ShowEmail"> <i class="bi bi-vector-pen"></i> </button>
+                    </div>
+                }
+                @if (IsCityClicked)
+                {
+                    <div class="Info">
+                        <div class="Villess">
+                            <MudMenu Label="Chose Your New City" MaxHeight="450" FullWidth="true">
+                                @if (villes != null && villes.Any())
+                                {
+                                    @foreach (var v in villes)
+                                    {
+                                        <MudMenuItem OnClick="()=>ChoseVille(v)">@v.Nom</MudMenuItem>
+                                    }
+                                }
+
+                            </MudMenu>
+                        </div>
+                        <button class="BtnSuc" @onclick="ChangeVille">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>City : </b> @client.ville.Nom</p>
+                        <button @onclick="ShowCity"> <i class="bi bi-vector-pen"></i> </button>
+                    </div>
+                }
+                @if (IsAddressClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewAddress" placeholder="Enter Your New Address" />
+                        <button class="BtnSuc" @onclick="ChangeAddress">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>Address : </b> @client.Addres</p>
+                        <button @onclick="ShowAddress"> <i class="bi bi-vector-pen"></i> </button>
+                    </div>
+                }
+                @if (IsPostCodeClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewPostCode" placeholder="Enter Your New PostCode" />
+                        <button @onclick="ChangePostCode" class="BtnSuc">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>PostCode : </b> @client.Postcode</p>
+                        <button @onclick="ShowPostCode"> <i class="bi bi-vector-pen"></i> </button>
+                    </div>
+                }
+                @if (IsUserNameClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewUsename"  placeholder="Enter Your New User Name" />
+                        <button @onclick="ChnageUsername" class="BtnSuc">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>UserName : </b> @client.UserName</p>
+                        <button @onclick="ShowUsername"> <i class="bi bi-vector-pen"></i> </button>
+                    </div>
+                }
+                @if (IsPassWordClicked)
+                {
+                    <div class="Info">
+                        <input @bind="NewPassword" type="password" placeholder="Enter Your New Pass word" />
+                        <button @onclick="ChnagePassword" class="BtnSuc">Confirm</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="Info">
+                        <p><b>Password : </b>**********</p>
+                        <button @onclick="ShowPassword"> <i class="bi bi-vector-pen"></i> </button>
+                    </div>
+                }
+                <div class="Info" style="padding:0em 4em;margin-top:2em;">
+                    <button  class="BtnD">Delete Account</button>
+                    <button @onclick="Logout" class="BtnD"> Log Out</button>
+                </div>
+            </div>
+        </div>
+        <div class="Right">
+            <h1>Welcome: @client.Nom @client.Prenom</h1>
+            <div class="Stats">
+                <h2>Statistics</h2>
+                <div class="Statss">
+                    <p>Commisions Listed : <b> @client.NbrCommisionListed</b></p>
+                    <p>Reviews Made : <b>@client.ReviewsMade</b></p>
+                    <p>Artists booked : <b>@client.ArtistsBooked</b></p>
+                    <p>Art Work Bought : <b>@client.WorksBought</b></p>
+                </div>
+            </div>
+            <h2>Listed Commisions</h2>
+            <div class="Cardss">
+                @if ( commisions != null && commisions.Where(c=>c.Client.Id==client.Id && c.IsDone==false).ToList().Any())
+                {
+                    @foreach (var o in commisions.Where(c => c.Client.Id == client.Id && c.IsDone == false).ToList())
+                    {
+                        <div class="card">
+                            <div class="content">
+                                <div class="CommisionHeader">
+                                    <span class="tag">Posted By: <u>@o.Client.Nom @o.Client.Prenom</u></span>
+                                    <span class="tag">Posted The: <u>@o.PostedDate</u></span>
+                                </div>
+                                <div class="tags">
+                                    <span class="tag"><u>@o.Subject</u></span>
+                                    <span class="tag"> @o.body</span>
+                                    <span class="tag">Available In <b>@o.Client.ville.Nom</b></span>
+                                    <span class="tag">Excpected The: <u>@o.WantedReturnDate</u></span>
+                                </div>
+                                <div class="btns">
+                                    <button class="BtnDanger" @onclick="()=>Delete(o)">Delete</button>
+                                    <button class="BtnSuc" @onclick="()=>IsDone(o)">Mark as Done</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                }
+                else
+                {
+                    <h3>You have no Listed Items At the moment</h3>
+                }
+
+            </div>
+            <h2>Reviews Made:</h2>
+            <div class="Cardss">
+                @if (commentaires != null && commentaires.Any()&&client!=null)
+                {
+                    @foreach (var o in commentaires.Where(c => c.client.Id == client.Id).ToList())
+                    {
+                        <div class="card">
+                            <div class="content">
+                                <div class="CommisionHeader">
+                                    <span class="tag">Posted By: <u>@o.client.Nom @o.client.Prenom</u></span>
+                                    <span class="tag">Posted The: <u>@o.DateCommentaire</u></span>
+                                </div>
+                                <div class="tags">
+                                    <span class="tag"><u>@o.Title</u></span>
+                                    <span class="tag"> @o.Subject</span>
+                                </div>
+                                <div class="btns">
+                                    <button class="BtnDanger" @onclick="()=>DeleteComm(o)">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                }
+                else
+                {
+                    <h3>You have no Review made</h3>
+                }
+
+            </div>
+            <h2>Completed Commisions</h2>
+            <div class="Cardss">
+                @if (commisions != null && commisions.Where(c => c.Client.Id == client.Id && c.IsDone == true).ToList().Any())
+                {
+                    @foreach (var o in commisions.Where(c => c.Client.Id == client.Id && c.IsDone == true).ToList())
+                    {
+                        <div class="card">
+                            <div class="content">
+                                <div class="CommisionHeader">
+                                    <span class="tag">Posted By: <u>@o.Client.Nom @o.Client.Prenom</u></span>
+                                    <span class="tag">Posted The: <u>@o.PostedDate</u></span>
+                                </div>
+                                <div class="tags">
+                                    <span class="tag"><u>@o.Subject</u></span>
+                                    <span class="tag"> @o.body</span>
+                                    <span class="tag">Available In <b>@o.Client.ville.Nom</b></span>
+                                    <span class="tag">Excpected The: <u>@o.WantedReturnDate</u></span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                }
+                else
+                {
+                    <h3>You have no Completed Comissions</h3>
+                }
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <h1>Loading ... </h1>
+}
+<Footer />
+
+@code {
+    List<Commentaire> commentaires;
+    List<Ville> villes;
+    List<Commision> commisions;
+
+    List<Client> clients;
+    Client? client, client1;
+    //
+    public ArtForm? selectedArtForm;
+    public Ville? selectedVille;
+    //
+    public bool IsnomClicked = false;
+    public bool IsPrenomClicked = false;
+    public bool IsPhoneClicked = false;
+    public bool IsEmailClicked = false;
+    public bool IsCityClicked = false;
+    public bool IsUserNameClicked = false;
+    public bool IsAddressClicked = false;
+    public bool IsPostCodeClicked = false;
+    public bool IsPassWordClicked = false;
+    public bool IsArtFormClicked = false;
+    //
+
+    public string NewNom = string.Empty;
+    public string NewPrenom = string.Empty;
+    public string NewPhone = string.Empty;
+    public string NewEmail = string.Empty;
+    public string NewAddress = string.Empty;
+    public string NewPostCode = string.Empty;
+    public string NewUsename = string.Empty;
+    public string NewPassword = string.Empty;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        villes = await VilleService.GetVillesAsync();
+        commentaires = await CommentaireService.GetCommentairesAsync();
+        commisions = await CommisionService.GetCommisionsAsync();
+        
+        clients = await ClientService.GetClientsAsync();
+        client1 = await ClientService.GetCurrentClient();
+        if (client1 != null)
+        {
+            client = clients.FirstOrDefault(c => c.Id == client1.Id);
+        }
+
+    }
+    public void ChoseVille(Ville ville)
+    {
+        selectedVille = ville;
+        Console.WriteLine(selectedVille.Nom);
+    }
+    public async Task ChnageNom()
+    {
+        if (NewNom == string.Empty)
+        {
+            Snackbar.Add("Provide A valid Last Name", Severity.Error);
+        }
+        else
+        {
+            await ClientService.ChangeNomAsync(client.Id, NewNom);
+            await clearInputs();
+            Snackbar.Add("Last Name Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task ChangePrenom()
+    {
+        if (NewPrenom == string.Empty)
+        {
+            Snackbar.Add("Provide A valid First Name", Severity.Error);
+        }
+        else
+        {
+            await ClientService.ChangePrenomAsync(client.Id, NewPrenom);
+            await clearInputs();
+            Snackbar.Add("First Name Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task Logout()
+    {
+        await ArtistService.ClearArtistCurrent();
+        await ClientService.ClearClient();
+        NavigationManager.NavigateTo("/SignUp");
+
+    }
+    public async Task ChnagePhoneNumber()
+    {
+        if (NewPhone == string.Empty)
+        {
+            Snackbar.Add("Provide A valid Phone Number", Severity.Error);
+        }
+        else
+        {
+            await ClientService.ChangeTelephoneAsync(client.Id, NewPhone);
+            await clearInputs();
+            Snackbar.Add("Phone Number Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task ChangeEmail()
+    {
+        if (NewEmail == string.Empty)
+        {
+            Snackbar.Add("Provide A valid Email", Severity.Error);
+        }
+        else
+        {
+            await ClientService.ChangeMailAsync(client.Id, NewEmail);
+            await clearInputs();
+            Snackbar.Add("Email Changed Succesfully", Severity.Success);
+        }
+    }
+
+    public async Task ChangeAddress()
+    {
+        if (NewAddress == string.Empty)
+        {
+            Snackbar.Add("Provide A valid Address", Severity.Error);
+        }
+        else
+        {
+            await ClientService.ChngeAddressAsync(client.Id, NewAddress);
+            await clearInputs();
+            Snackbar.Add("Email Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task ChangePostCode()
+    {
+        if (NewPostCode == string.Empty)
+        {
+            Snackbar.Add("Provide A valid Address", Severity.Error);
+        }
+        else
+        {
+
+            await ClientService.ChangePostCode(client.Id, int.Parse(NewPostCode));
+            await clearInputs();
+            Snackbar.Add("Email Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task ChnageUsername()
+    {
+        if (NewUsename == string.Empty)
+        {
+            Snackbar.Add("Provide A valid User Name", Severity.Error);
+        }
+        else
+        {
+            await ClientService.ChangeUsernameAsync(client.Id, NewUsename);
+            await clearInputs();
+            Snackbar.Add("UserName Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task ChnagePassword()
+    {
+        if (NewPassword == string.Empty)
+        {
+            Snackbar.Add("Provide A valid Password", Severity.Error);
+        }
+        else
+        {
+
+            await ClientService.ChangePassWord(client.Id, NewPassword);
+            await clearInputs();
+            Snackbar.Add("UserName Changed Succesfully", Severity.Success);
+        }
+    }
+    public async Task ChangeVille()
+    {
+        if (selectedVille == null)
+        {
+            Snackbar.Add("Provide A valid City", Severity.Error);
+        }
+        else
+        {
+            await ClientService.ChangeVilleAsync(client.Id, selectedVille.Id);
+            await clearInputs();
+            Snackbar.Add("City Changed Succesfully", Severity.Success);
+        }
+    }
+
+    public async Task clearInputs()
+    {
+        NewNom = string.Empty;
+        NewPrenom = string.Empty;
+        NewPhone = string.Empty;
+        NewEmail = string.Empty;
+        NewUsename = string.Empty;
+        NewPassword = string.Empty;
+        IsnomClicked = false;
+        IsPrenomClicked = false;
+        IsPhoneClicked = false;
+        IsEmailClicked = false;
+        IsCityClicked = false;
+        IsUserNameClicked = false;
+        IsPassWordClicked = false;
+        IsAddressClicked = false;
+        IsPostCodeClicked = false;
+        selectedVille = null;
+        NewPostCode = string.Empty;
+        NewAddress = string.Empty;
+        clients = await ClientService.GetClientsAsync();
+        client1 = await ClientService.GetCurrentClient();
+        client = clients.FirstOrDefault(c => c.Id == client1.Id);
+    }
+
+
+    public async Task IsDone(Commision c)
+    {
+        await CommisionService.ToggleDoneAsync(c.Id);
+        commisions = await CommisionService.GetCommisionsAsync();
+
+    }
+    public async Task Delete(Commision c)
+    {
+        await CommisionService.DeleteCommisionAsync(c.Id);
+        commisions = await CommisionService.GetCommisionsAsync();
+
+    }
+    public async Task DeleteComm(Commentaire c)
+    {
+        await CommentaireService.DeleteCommentaireAsync(c.Id);
+        commentaires = await CommentaireService.GetCommentairesAsync();
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+    //
+    void ShowNom()
+    {
+        IsnomClicked = true;
+    }
+    void showprenom()
+    {
+        IsPrenomClicked = true;
+    }
+    void ShowNumber()
+    {
+        IsPhoneClicked = true;
+    }
+    void ShowEmail()
+    {
+        IsEmailClicked = true;
+    }
+    void ShowAddress()
+    {
+        IsAddressClicked = true;
+    }
+    void ShowPostCode()
+    {
+        IsPostCodeClicked = true;
+    }
+    void ShowUsername()
+    {
+        IsUserNameClicked = true;
+    }
+    void ShowPassword()
+    {
+        IsPassWordClicked= true;
+    }
+    void ShowCity()
+    {
+        IsCityClicked = true;
+    }
+}

@@ -1,0 +1,33 @@
+﻿@media (max-width: 992px) {
+    .m {
+        padding: 2rem 1rem;
+    }
+
+    .ArtistSS {
+        padding: 2em;
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .ArtistSS {
+        flex-direction: column;
+    }
+
+    .Left, .Right {
+        width: 100%;
+    }
+
+    .img-container {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+}
