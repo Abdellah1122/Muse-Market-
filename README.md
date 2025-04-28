@@ -35,8 +35,6 @@ MuseMarket creates a dynamic environment for both creators and collectors:
 
 ## 📸 Screenshots
 
-> _Coming soon..._
-
 ![Home Page](Image/PageGarde.png)
 ![Sign Up](Image/SignUpArtist.png.png)
 ![Sign In](Image/Login.png.png)
@@ -72,7 +70,7 @@ MuseMarket creates a dynamic environment for both creators and collectors:
     
     CopyEdit
     
-    `git clone https://github.com/yourusername/MuseMarket.git` 
+    `git clone https://github.com/Abdellah1122/Muse-Market.git` 
     
 2.  Navigate to the project folder:
     
