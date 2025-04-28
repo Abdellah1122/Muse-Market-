@@ -36,13 +36,13 @@ MuseMarket creates a dynamic environment for both creators and collectors:
 ## 📸 Screenshots
 
 ![Home Page](Image/PageGarde.png)
-![Sign Up](Image/SignUpArtist.png.png)
-![Sign In](Image/Login.png.png)
-![Artists](Image/aRTIST.png.png)
-![Oeuvre](Image/GALL.png.png)
-![Artist](Image/DetailArtist.png.png)
-![Oeuvre](Image/DetailOeauve.png.png)
-![Commisions](Image/Commisions.png.png)
+![Sign Up](Image/SignUpArtist.png)
+![Sign In](Image/Login.png)
+![Artists](Image/aRTIST.png)
+![Oeuvre](Image/GALL.png)
+![Artist](Image/DetailArtist.png)
+![Oeuvre](Image/DetailOeauve.png)
+![Commisions](Image/Commisions.png)
 ----------
 
 ## 📚 Features
